@@ -340,7 +340,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   vector<TH1F*> hdTS_Kal;
   hdTS_Kal.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hdTS_Kal[i] = new TH1F(Form("hdTS_Kal_%d",i),Form("#it{TS}_{Kal}(%d) #it{interval}; #it{TS}_{Kal}(%d) #it{interval} (s); (#it{counts})", i, i),  1000,0,1e-2);
+    hdTS_Kal[i] = new TH1F(Form("hdTS_Kal_%d",i),Form("#it{TS}_{Kal}(%d) #it{interval}; #it{TS}_{Kal}(%d) #it{interval} [s]; (#it{counts})", i, i),  1000,0,1e-2);
   }
   TH2F *hdTS_Kal_2D;
   hdTS_Kal_2D = new TH2F("hdTS_Kal_2D","hdTS_Kal_2D; Kalliope IP; dTS_Kal",12,0,12,1000,-1e-6,1e-6);
@@ -348,7 +348,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   vector<TH2F*> hTS_diff;
   hTS_diff.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hTS_diff[i] = new TH2F(Form("hTS_diff_%d",i),Form("#it{TS}_{Kal}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} (s); #it{TS}_{Kal}(%d) - TS_{NIM} (s)",i, i), 1000, 0, 10, 1000, -2e-5, 2e-5);
+    hTS_diff[i] = new TH2F(Form("hTS_diff_%d",i),Form("#it{TS}_{Kal}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} [s]; #it{TS}_{Kal}(%d) - #it{TS}_{NIM} [s]",i, i), 1000, 0, 10, 1000, -2e-5, 2e-5);
   }
   TH2F *hTS_diff_2D;
   hTS_diff_2D = new TH2F("hTS_diff_2D","hTS_diff_2D; Kalliope IP; TS_diff",12,0,12,1000,-1e-6,1e-6);
@@ -362,7 +362,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   vector<TH2F*> hdTS_calib;
   hdTS_calib.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hdTS_calib[i] = new TH2F(Form("hdTS_calib_%d",i),Form("#it{TS}_{Kal_calib}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} (s); #it{TS}_{Kal_calib}(%d) - TS_{NIM} (s)",i, i), 1000, 0, 10, 1000, -1e-6, 1e-6);
+    hdTS_calib[i] = new TH2F(Form("hdTS_calib_%d",i),Form("#it{TS}_{Kal_calib}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} [s]; #it{TS}_{Kal_calib}(%d) - TS_{NIM} [s]",i, i), 1000, 0, 10, 1000, -1e-6, 1e-6);
   }
 
   //===== Histgram for Rawdata =====
@@ -769,6 +769,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 		//cout << TS_diff[0] << ", " << dTS_diff[1] << endl;
   
     //===== Display Procedure of Event Loop =====
+		if(N_event[0] == 0) cout << endl;
     if(N_event[0] %1000 == 0){
       //double Trun = RunTimer.RealTime();
       double Trun = RunTimer.RealTime();
@@ -803,14 +804,17 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
     //if(FILL_FLAG && SYNC_FLAG[IP_max-1]){
 		if (N_event[0] == 2) {
 		  cout << endl;
-			cout << Form("%21s       ||%12s","Number of Events", "TS interval") << endl;
-			cout << Form("-------------------------------------------------------") << endl;
-		  cout << Form("%7s | %7s | %7s || %6s | %6s | %6s", "NIM", "Kal0", "Kal1", "NIM", "Kal[0]", "Kal[1]") << endl;
-			cout << Form("-------------------------------------------------------") << endl;
+      cout << "--------------------------------------------------------------------------------" << endl;
+      cout << "------ Events Mismatch ---------------------------------------------------------" << endl;
+      cout << "--------------------------------------------------------------------------------" << endl;
+			cout << Form("%21s       ||%18s        |","Number of Events", "TS interval") << endl;
+			cout << Form("------------------------------------------------------- |") << endl;
+		  cout << Form("%7s | %7s | %7s || %6s | %6s | %6s |", "NIM", "Kal0", "Kal1", "NIM", "Kal[0]", "Kal[1]") << endl;
+			cout << Form("------------------------------------------------------- |") << endl;
 		}
 
     if (FILL_FLAG && SKIP_FLAG_new){
-		  cout << Form("%7d | %7d | %7d || %6.2f | %6.2f | %6.2f ",
+		  cout << Form("%7d | %7d | %7d || %6.2f | %6.2f | %6.2f |",
 						        N_NIM_event,N_event[0],N_event[1], 1e6*dTS_NIM, 1e6*dTS_Kal[0], 1e6*dTS_Kal[1])     
 					 << endl;
 		}
@@ -843,36 +847,36 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       }
 
       //===== Check Event Mismatch ======
-      if(SYNC_FLAG[0]){
-      	if(N_Kal_Sync[0]==1){
-	         ofEvtMatch << setw(8) << "Sync No" << ", " << setw(10) << "Event No" << ", "
-		         << setw(8+4*IP_max) << "N_Sync_Interval" <<", "
-		         << setw(15)<< "Event Mismatch" << endl;
-	         ofEvtMatch << setw(8) << "" << "  " << setw(10) << "" << "  "
-		         << setw(8) << "NIM-TDC" <<", "<<setw(IP_max*4-2)<< "Kalliope"
-		         << ", " << setw(15) << "" << endl;
-	      for(int IP=0;IP<IP_max;IP++){
-	        if(IP==0){ofEvtMatch << setw(8) << "" << "  " << setw(10) << "" << "  "
-		    		 << setw(8) << 16;
-	        }
-	        ofEvtMatch << ", " << setw(2) << IP + 1;
-	        
-	        if(IP==IP_max-1) ofEvtMatch << ", " << setw(15) << "" << endl;
-	      }
-	    }
-	      for(int IP=0;IP<IP_max;IP++){
-	        string EvtMismatch = "";
-	        if(N_NIM_Sync_Interval != N_Sync_Interval[IP]) EvtMismatch = "Event Mismatch";
-	        if(IP==0){
-	          ofEvtMatch << setw(8) << N_Kal_Sync[0] << "  " << setw(10) << N_event[0] << "  "
-	      	       << setw(8) << N_NIM_Sync_Interval;
-	        }
-	        ofEvtMatch << ", " << setw(2) << N_Sync_Interval[IP];
-	        if(IP==IP_max-1) ofEvtMatch << ", " << setw(15) << EvtMismatch << endl;
-	        N_Sync_Interval[IP] = 0;
-	      }
-	      N_NIM_Sync_Interval = 0;	    
-      }
+      //if(SYNC_FLAG[0]){
+      //	if(N_Kal_Sync[0]==1){
+	    //     ofEvtMatch << setw(8) << "Sync No" << ", " << setw(10) << "Event No" << ", "
+		  //       << setw(8+4*IP_max) << "N_Sync_Interval" <<", "
+		  //       << setw(15)<< "Event Mismatch" << endl;
+	    //     ofEvtMatch << setw(8) << "" << "  " << setw(10) << "" << "  "
+		  //       << setw(8) << "NIM-TDC" <<", "<<setw(IP_max*4-2)<< "Kalliope"
+		  //       << ", " << setw(15) << "" << endl;
+	    //  for(int IP=0;IP<IP_max;IP++){
+	    //    if(IP==0){ofEvtMatch << setw(8) << "" << "  " << setw(10) << "" << "  "
+		  //  		 << setw(8) << 16;
+	    //    }
+	    //    ofEvtMatch << ", " << setw(2) << IP + 1;
+	    //    
+	    //    if(IP==IP_max-1) ofEvtMatch << ", " << setw(15) << "" << endl;
+	    //  }
+	    //}
+	    //  for(int IP=0;IP<IP_max;IP++){
+	    //    string EvtMismatch = "";
+	    //    if(N_NIM_Sync_Interval != N_Sync_Interval[IP]) EvtMismatch = "Event Mismatch";
+	    //    if(IP==0){
+	    //      ofEvtMatch << setw(8) << N_Kal_Sync[0] << "  " << setw(10) << N_event[0] << "  "
+	    //  	       << setw(8) << N_NIM_Sync_Interval;
+	    //    }
+	    //    ofEvtMatch << ", " << setw(2) << N_Sync_Interval[IP];
+	    //    if(IP==IP_max-1) ofEvtMatch << ", " << setw(15) << EvtMismatch << endl;
+	    //    N_Sync_Interval[IP] = 0;
+	    //  }
+	    //  N_NIM_Sync_Interval = 0;	    
+      //}
       
       //====== Tracking ======
 #ifdef TRACKING_ON
@@ -1019,8 +1023,8 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	c_dTS_Kal -> Divide(col, row);
 
 	for (int ii = 0; ii < IP_max; ii++) {
-		SetMargins();
 		c_dTS_Kal    -> cd(ii + 1);
+		SetMargins();
 		hdTS_Kal[ii] -> Fit(fdTS_Kal[ii], "L", "", 0, 100e-6);
 		hdTS_Kal[ii] -> Draw();
 		gPad -> SetLogy(1);
@@ -1040,42 +1044,46 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   
   //====== Close Input File Stream ======
   //====== Show Run Information ======
-  ofNevent << setw(10) << "DAQ"
-	   << ", " << setw(10) << "N_event"
-	   << ", " << setw(10) << "N_Trigger"
-	   << ", " << setw(10) << "N_Sync(x2)"
-	   << ", " << setw(15) << "Last Trig. No."
-	   << ", " << setw(15) << "Last Trig.2 No."
-	   << ", " << setw(10) << "LOS FLAG" << endl;
-  ofNevent << setw(10) << "NIM-TDC"
-	   << ", " << setw(10) << N_NIM_event
-	   << ", " << setw(10) << N_NIM_event - N_NIM_Sync * 2
-	   << ", " << setw(10) << N_NIM_Sync * 2
-	   << ", " << setw(15) << N_NIM_Last
-	   << ", " << setw(15) << N_NIM_Last2
-	   << ", " << setw(10) << N_NIM_LOS << endl;  
+  //ofNevent << setw(10) << "DAQ"
+	//   << ", " << setw(10) << "N_event"
+	//   << ", " << setw(10) << "N_Trigger"
+	//   << ", " << setw(10) << "N_Sync(x2)"
+	//   << ", " << setw(15) << "Last Trig. No."
+	//   << ", " << setw(15) << "Last Trig.2 No."
+	//   << ", " << setw(10) << "LOS FLAG" << endl;
+  //ofNevent << setw(10) << "NIM-TDC"
+	//   << ", " << setw(10) << N_NIM_event
+	//   << ", " << setw(10) << N_NIM_event - N_NIM_Sync * 2
+	//   << ", " << setw(10) << N_NIM_Sync * 2
+	//   << ", " << setw(15) << N_NIM_Last
+	//   << ", " << setw(15) << N_NIM_Last2
+	//   << ", " << setw(10) << N_NIM_LOS << endl;  
 
   for(int IP=0;IP<IP_max;IP++){
-    ofNevent << setw(10) << Form("Kalliope %d", IP)
-	     << ", " << setw(10) << N_event[IP]
-	     << ", " << setw(10) << N_event[IP] - N_Kal_Sync[IP] * 2
-	     << ", " << setw(10) << N_Kal_Sync[IP] * 2
-	     << ", " << setw(15) << N_Kal_Last[IP]
-	     << ", " << setw(15) << N_Kal_Last2[IP]
-	     << ", " << setw(10) << N_Kal_LOS[IP] << endl;  
+    //ofNevent << setw(10) << Form("Kalliope %d", IP)
+	  //   << ", " << setw(10) << N_event[IP]
+	  //   << ", " << setw(10) << N_event[IP] - N_Kal_Sync[IP] * 2
+	  //   << ", " << setw(10) << N_Kal_Sync[IP] * 2
+	  //   << ", " << setw(15) << N_Kal_Last[IP]
+	  //   << ", " << setw(15) << N_Kal_Last2[IP]
+	  //   << ", " << setw(10) << N_Kal_LOS[IP] << endl;  
     rawdata[IP].close();
   }
   double Trun_total = RunTimer.RealTime();
   double rate_ave = N_event[0] / Trun_total;
   RunTimer.Stop();
 
-  cout << "*********************************" << endl;  
-  cout << "Total Real time : "                << Trun_total                     << " s"      << endl;
-  cout << "Total Event : "                    << N_event[0]                     << " events" << endl;
-  cout << "Average Count Rate : "             << rate_ave                       << " cps"    << endl;
-  cout << "Total Tracking Available Event : " << N_track                        << " event"  << endl;
-  cout << "Tracking Available Count Rate :  " << (double)N_track/N_event[0]*100 << " %"      << endl;
-  cout << "*********************************" << endl;
+	cout << endl;
+  cout << "--------------------------------------------------------------------------------" << endl;  
+  cout << "------ Statistics --------------------------------------------------------------" << endl;  
+  cout << "--------------------------------------------------------------------------------" << endl;  
+  cout << "Total Execution time :   " << Trun_total                     << " s"      << endl;
+  cout << "Total Number of Events : " << N_event[0]                     << " events" << endl;
+  cout << "Processing speed (/s) :  " << rate_ave                       << " cps"    << endl;
+  cout << "Total Trackable Events : " << N_track                        << " event"  << endl;
+  cout << "Trackable Event Ratio :  " << (double)N_track/N_event[0]*100 << " %"      << endl;
+  cout << "--------------------------------------------------------------------------------" << endl;  
+	cout << endl;
   tree->Write();
   f->Write();   
 }

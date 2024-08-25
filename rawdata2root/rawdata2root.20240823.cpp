@@ -17,7 +17,7 @@
 #include <TStopwatch.h>
 #include <TCanvas.h>
 
-#include "./include/configureIP.h"
+#include "../include/configureIP.h"
 //#include "./include/setup.h"
 
 //#define TEST_ON // ON: Read only 10k events
