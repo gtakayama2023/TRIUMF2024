@@ -88,7 +88,7 @@ int CheckLOS(ifstream& rawdata){
     return 0;
   }
   else if(Next32bit == 0x00070000){
-    cout << "LOS Flag was detected!!!" << endl;
+    //cout << "LOS Flag was detected!!!" << endl;
     return 1;
   }
   else{
@@ -508,8 +508,8 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       	  if(LOS_NIM_FLAG){
       	    N_NIM_LOS++;
       	    //FILL_FLAG = false;
-      	    cout << "LOS NIM FLAG was detected!!" << endl;
-      	    cout << "Event No. : " << N_NIM_event << endl;
+      	    //cout << "LOS NIM FLAG was detected!!" << endl;
+      	    //cout << "Event No. : " << N_NIM_event << endl;
       	  }
 					bool breakOK = true;
       	  if(Skip_NIM) breakOK = false; Skip_NIM = false;

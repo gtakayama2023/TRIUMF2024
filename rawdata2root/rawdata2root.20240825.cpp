@@ -27,35 +27,49 @@
 
 using namespace std;
 
-void SkipOrNot(int IP_max, double dTS_Kal[12], double dTS_NIM, double maxValue, bool Skip_Kal[12], bool &Skip_NIM, bool &SKIP_FLAG_new) {
+void SkipOrStop(int IP_max, double dTS_Kal[12], double dTS_NIM, 
+						   double minValue, double maxValue,
+			         bool Skip_Kal[12], bool &Skip_NIM, bool &SKIP_FLAG_new, 
+							 bool Stop_Kal[12], bool &Stop_NIM) 
+{
     double tolerance = 0.3e-6;
+		// For Skip
 		SKIP_FLAG_new = false;
     for (int i = 0; i < IP_max; i++) {
-        if (dTS_Kal[i] != 0 && std::fabs(dTS_Kal[i] - maxValue) <= tolerance) {
+        if (std::fabs(dTS_Kal[i] - maxValue) <= tolerance) {
             Skip_Kal[i] = false;
         } else {
             Skip_Kal[i] = true;
 						SKIP_FLAG_new   = true;
         }
     }
-    if (dTS_NIM != 0 && std::fabs(dTS_NIM - maxValue) <= tolerance) {
+    if (std::fabs(dTS_NIM - maxValue) <= tolerance) {
         Skip_NIM = false;
     } else {
         Skip_NIM = true;
 				SKIP_FLAG_new   = true;
     }
-}
-
-std::pair<double, double> FindMinMax(double dTS_Kal[12], double dTS_NIM) {
-    std::vector<double> validValues;
-    for (int i = 0; i < 12; i++) {
-        if (dTS_Kal[i] != 0) {
-            validValues.push_back(dTS_Kal[i]);
+		// For Stop
+    for (int i = 0; i < IP_max; i++) {
+        if (std::fabs(dTS_Kal[i] - minValue) <= tolerance) {
+            Stop_Kal[i] = false;
+        } else {
+            Stop_Kal[i] = true;
         }
     }
-    if (dTS_NIM != 0) {
-        validValues.push_back(dTS_NIM);
+    if (std::fabs(dTS_NIM - minValue) <= tolerance) {
+        Stop_NIM = false;
+    } else {
+        Stop_NIM = true;
     }
+}
+
+std::pair<double, double> FindMinMax(int IP_max, double dTS_Kal[12], double dTS_NIM) {
+    std::vector<double> validValues;
+    for (int i = 0; i < IP_max; i++) {
+      validValues.push_back(dTS_Kal[i]);
+    }
+    validValues.push_back(dTS_NIM);
     if (validValues.empty()) {
         return {std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()};
     }
@@ -88,11 +102,11 @@ int CheckLOS(ifstream& rawdata){
     return 0;
   }
   else if(Next32bit == 0x00070000){
-    cout << "LOS Flag was detected!!!" << endl;
+    //cout << "LOS Flag was detected!!!" << endl;
     return 1;
   }
   else{
-    cerr << "Error : LOS Flag cannnot be detected" << endl;
+    //cerr << "Error : LOS Flag cannnot be detected" << endl;
     return 1;
   }
 }
@@ -421,18 +435,23 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   rawdata_nimtdc.seekg(0, ios::beg); 
   cout << Form("rawdata_NIM-TDC filesize : ") << fsize << endl;
 
-	bool Skip_NIM = true;
-	bool Skip_Kal[12] = {true};
+	bool Skip_NIM = false, Stop_NIM = false;
+	bool Skip_Kal[12] = {false}, Stop_Kal[12] = {false};
 	bool SKIP_FLAG_new = false;
 
   //Start Reaing All Rawdata =====
   while(WHOLE_FLAG){
-		auto [minValue, maxValue] = FindMinMax(dTS_Kal, dTS_NIM);
-		SkipOrNot(IP_max, dTS_Kal, dTS_NIM, maxValue, Skip_Kal, Skip_NIM, SKIP_FLAG_new);
+		auto [minValue, maxValue] = FindMinMax(IP_max, dTS_Kal, dTS_NIM);
+		SkipOrStop(IP_max, dTS_Kal, dTS_NIM, 
+						   minValue, maxValue, 
+							 Skip_Kal, Skip_NIM, SKIP_FLAG_new,
+							 Stop_Kal, Stop_NIM);
+
+		//cout << IP_max << ", " << minValue << ", " << maxValue << ", " << dTS_NIM << ", " << dTS_Kal[0] << ", " << dTS_Kal[1] << ", " << Stop_NIM << ", " << Stop_Kal[0] << ", " << Stop_Kal[1] << endl;
 
     if(fNIM){
       //===== Start Reading each Rawdata_Nimtdc ======
-      while(!rawdata_nimtdc.eof()){
+      while(!rawdata_nimtdc.eof()/* && !Stop_NIM*/){
 	      char Byte[4];
 	      unsigned int data;
 	      rawdata_nimtdc.read(Byte, 4); // reading 4 byte (32 bit)
@@ -508,8 +527,8 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       	  if(LOS_NIM_FLAG){
       	    N_NIM_LOS++;
       	    //FILL_FLAG = false;
-      	    cout << "LOS NIM FLAG was detected!!" << endl;
-      	    cout << "Event No. : " << N_NIM_event << endl;
+      	    //cout << "LOS NIM FLAG was detected!!" << endl;
+      	    //cout << "Event No. : " << N_NIM_event << endl;
       	  }
 					bool breakOK = true;
       	  if(Skip_NIM) breakOK = false; Skip_NIM = false;
@@ -528,7 +547,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       //===== For Reline Up ======
       configureIP(IP, xy, ud, oi, ch_offset, Layer_No);      
       //===== Start Reading each Rawdata ======
-      while(!rawdata[IP].eof()){
+      while(!rawdata[IP].eof()/* && !Stop_Kal[IP]*/){
 	      //===== SKIP_FLAG =====
 	      /*
 	      if(SKIP_FLAG[IP]){
@@ -638,7 +657,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	          }*/
 	      } // End of 5c Event
 
-				//auto [minValue, maxValue] = FindMinMax(dTS_Kal, dTS_NIM);
+				//auto [minValue, maxValue] = FindMinMax(IP_max, dTS_Kal, dTS_NIM);
 
 				//if (N_event[0] % 1000 == 0) {
 				//  cout << N_event[0]     << ", " 
@@ -745,7 +764,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	    << "Reading  : " << N_event[0] << flush  << " events"<< "\r";
     }
 #ifdef TEST_ON
-    if(N_event[0] > 10000) break;
+    if(N_event[0] > 10) break;
 #endif
     //if(N_event[IP]%1000 == 0) cout << "NETtime_0 : " << NETtime_0 << " sec" << endl;
     
@@ -755,11 +774,22 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	      WHOLE_FLAG = false; break;
       }
     }
+
+		auto [minValue1, maxValue1] = FindMinMax(IP_max, dTS_Kal, dTS_NIM);
+		SkipOrStop(IP_max, dTS_Kal, dTS_NIM, 
+						   minValue1, maxValue1, 
+							 Skip_Kal, Skip_NIM, SKIP_FLAG_new,
+							 Stop_Kal, Stop_NIM);
     
     //if(FILL_FLAG && SYNC_FLAG[IP_max-1]){
-    if(FILL_FLAG && SKIP_FLAG_new){
-		  cout << Form("N_event| [NIM] = %d, [0] = %d,  [1] = %d, Skip| Kal[0] = %d, Kal[1] = %d, NIM = %d, minValue = %0.2f, maxValue = %0.2f",
-						        N_NIM_event,N_event[0],N_event[1],        Skip_NIM, Skip_Kal[0], Skip_Kal[1],       1e6*minValue,     1e6*maxValue)     
+		if (N_event[0] == 2) {
+			cout << Form("%21s       ||%12s","Number of Events", "TS interval") << endl;
+		  cout << Form("%7s | %7s | %7s || %6s | %6s | %6s", "NIM", "Kal0", "Kal1", "NIM", "Kal[0]", "Kal[1]") << endl;
+		}
+
+    if (FILL_FLAG && SKIP_FLAG_new){
+		  cout << Form("%7d | %7d | %7d || %6.2f | %6.2f | %6.2f ",
+						        N_NIM_event,N_event[0],N_event[1], 1e6*dTS_NIM, 1e6*dTS_Kal[0], 1e6*dTS_Kal[1])     
 					 << endl;
 		}
 			// hogehoge
