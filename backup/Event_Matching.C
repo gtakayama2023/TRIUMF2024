@@ -1,0 +1,82 @@
+#define Event_Matching_cxx
+#include "Event_Matching.h"
+#include <TH2.h>
+#include <TStyle.h>
+#include <TCanvas.h>
+#include <TGraph.h>
+#include <TF1.h>
+#include <iostream>
+#include <vector>
+
+void Event_Matching::TS_Calibration()
+{
+//   In a ROOT session, you can do:
+//      root> .L Event_Matching.C
+//      root> Event_Matching t
+//      root> t.GetEntry(12); // Fill t data members with entry number 12
+//      root> t.Show();       // Show values of entry 12
+//      root> t.Show(16);     // Read and show values of entry 16
+//      root> t.Loop();       // Loop on all entries
+//
+
+//     This is the loop skeleton where:
+//    jentry is the global entry number in the chain
+//    ientry is the entry number in the current Tree
+//  Note that the argument to GetEntry must be:
+//    jentry for TChain::GetEntry
+//    ientry for TTree::GetEntry and TBranch::GetEntry
+//
+//       To read only selected branches, Insert statements like:
+// METHOD1:
+//    fChain->SetBranchStatus("*",0);  // disable all branches
+//    fChain->SetBranchStatus("branchname",1);  // activate branchname
+// METHOD2: replace line
+//    fChain->GetEntry(jentry);       //read all branches
+//by  b_branchname->GetEntry(ientry); //read only this branch
+   if (fChain == 0) return;
+
+   Long64_t nentries = fChain->GetEntriesFast();
+
+   Long64_t nbytes = 0, nb = 0;
+   for (Long64_t jentry=0; jentry<nentries;jentry++) {
+      Long64_t ientry = LoadTree(jentry);
+      if (ientry < 0) break;
+      nb = fChain->GetEntry(jentry);   nbytes += nb;
+      // if (Cut(ientry) < 0) continue;
+      cout << "Event : " << jentry << endl;
+      fChain->GetEntry(jentry);
+      cout << "TimeStamp : " << TimeStamp << endl;
+      /*
+      if(jentry % 100 == 0){
+	int start = jentry;
+	int end = start + 100;
+	if(end > nentries) end = nentries;
+	int index = jentry / 100;
+	
+	std::vector<double> TS;
+	std::vector<double> dTS;
+	for(int i=start;i<end;i++){
+	  LoadTree(i);
+	  fChain->GetEntry(i);
+	  TS.push_back(TimeStamp[1]);
+	  dTS.push_back(T_diff[1]);
+	  //std::cout << TS[i] << std::endl;
+	}
+      */
+	/*
+	TGraph *graph = new TGraph(TS.size(), &TS[0], &dTS[0]);
+	TF1 *fitfunc = new TF1("fitfunc", "pol1", start, end);
+	graph->Fit(fitfunc, "Q");
+	a[index] = fitfunc->GetParameter(1);
+	b[index] = fitfunc->GetParameter(0);	
+	delete graph;
+	*/
+   }
+}
+   /*
+   for (size_t i=0;i<a.size();i++){
+     std::cout << "Range " << i*100 << " - " << (i+1)*100-1 << ": ";
+     std::cout << "Slope = " << a[i] << ", Intercept = " << b[i] << std::endl;
+   }
+   */
+//}

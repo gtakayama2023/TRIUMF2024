@@ -1,0 +1,5 @@
+       DAQ,    N_event,  N_Trigger, N_Sync(x2),  Last Trig. No., Last Trig.2 No.,   LOS FLAG
+   NIM-TDC,        293,         91,        202,             292,             292,          0
+Kalliope 0,        293,         91,        202,             292,             292,          0
+Kalliope 1,        293,         91,        202,             292,             292,          0
+Kalliope 2,        293,         91,        202,             292,             292,          0

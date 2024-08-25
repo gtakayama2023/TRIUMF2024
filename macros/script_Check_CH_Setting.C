@@ -1,0 +1,4 @@
+{
+    gROOT->ProcessLine(".L ./rawdata2root.cpp++g");
+    Check_CH_Setting();
+}

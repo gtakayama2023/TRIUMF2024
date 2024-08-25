@@ -1,0 +1,19 @@
+//===== Raw Data =====
+int Traw_L[12][2][16][10];
+int Traw_T[12][2][16][10];
+int TOT[12][2][16][10];
+int Traw_num[12][2][16];
+int KEL[12][2][16][10];
+bool Fired_V[12][2][16];
+int leading[12][2][16];
+int trailing[12][2][16];
+int tot[12][2][16];
+
+//===== Fiber =====
+double Fired_T[2][2][2][64];
+double Fiber_T[2][2][2][64][10];
+double Fiber_L[2][2][2][64];
+double Fiber_Tr[2][2][2][64];
+double Fiber_Q[2][2][2][64];
+double Tnum[2][2][2][64];
+double Fired_Tnum[2][2][2];

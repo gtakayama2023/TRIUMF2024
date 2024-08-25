@@ -1,0 +1,28 @@
+void Plot_MPPC_IV() {
+    ifstream infile("./txt/MPPC_IV.txt");
+    vector<double> V, I;
+    double v, i;
+    string header;
+    getline(infile, header);
+    
+    while (infile >> v) {
+        infile.ignore(1);
+        infile >> i;
+        V.push_back(v);
+        I.push_back(i);
+    }
+
+    int n = V.size();
+    double* v_arr = &V[0];
+    double* i_arr = &I[0];
+
+    TGraph* gr = new TGraph(n, v_arr, i_arr);
+    gr->SetTitle("V vs I;Voltage (V);Current (uA)");
+    gr->SetMarkerStyle(20);
+    gr->SetMarkerSize(1);
+    gr->SetMarkerColor(kRed);
+
+    TCanvas* c1 = new TCanvas("c1", "V vs I", 800, 600);
+    gr->Draw("AP");
+    c1->SaveAs("../pdf/Plot_MPPC_IV.pdf");
+}

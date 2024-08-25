@@ -1,0 +1,766 @@
+/*
+
+=============================================
+  RIDF2Tree for RIBF123[Ca&Ni RADII]
+  written by M. Tanaka(Osaka Univ.)
+=============================================
+
+*/
+
+#include <signal.h>
+#include <iostream>
+#include <iomanip>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+using namespace std;
+
+#include "TSystem.h"
+#include "TString.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TH3.h"
+#include "TCanvas.h"
+#include "TApplication.h"
+#include "TTree.h"
+#include "TFile.h"
+#include "TMath.h"
+#include "TMatrix.h"
+#include "TCutG.h"
+#include "TGraphErrors.h"
+
+#include "TArtEventStore.hh"
+#include "TArtRawEventObject.hh"
+
+#include "../include/ROOTStyle.h"
+#include "../include/fiber.h"
+#include "../include/h290_para.h"
+
+// channel of reference in V1190
+// const int refch = 32;
+
+// Segment ID
+// const int segTS[3]={0,3,60};
+// const int segV1190[3]={0,0,1};
+
+bool keeploop = true;
+
+void stop_int(int signal){
+  char inp[15];
+  int sig;
+  cout << "interrupt" << endl;
+  printf("Keep loop : 0\nEnd loop : 1\nExit App : 2\n");
+  fgets(inp,15,stdin);   // assign stdin to inp. (stdin -> standard input)
+  sscanf(inp,"%d",&sig); // assign the number of "inp" to sig. 
+  
+  if(sig==0){
+    keeploop = true;
+  }else if(sig==1){
+    keeploop = false;
+  }else if(sig==2){
+    gSystem->ExitLoop();
+  }else{
+    exit(1);
+  }
+  return;
+  
+};
+
+
+int main(int argc, char* argv[]){
+  /* argc= the numbebr of argument */
+  /* argv= the character of each argument */
+  /* argv[0], argv[1], .... */
+  
+  //  TApplication theApp("MKFILE", &argc, argv);
+  
+  //    gSystem->Load("libanacore.so");
+  //    gSystem->Load("/home/exp/yoshilib/libMyFunc.so");
+  
+  /*  Initialize  */
+  SetRootStyle();
+  
+  //===== Define the path of input/output files ====================  
+  int run;
+  TString ifname, ofname;
+  
+  TString ifname0, ofname0;
+  ifname0 = "./ridf/run%04d.ridf";
+  ofname0 = "./root/run%04d.root";
+  
+  //===== Check command line =======================================
+  if(argc==2){
+    char *eptr;
+    run = (int)strtol(argv[1], &eptr, 10); /* read run number */
+    ifname = Form(ifname0,run);
+    ofname = Form(ofname0,run);    
+  }else{
+    cout << "Invalid format: Quit." << endl;
+    return 0;
+  }
+  //================================================================
+  
+  signal(SIGINT,stop_int);            // for user interrupt
+  
+  //===== Open file & Set EventStore, RawEvent Object ==============  
+  TArtEventStore *estore = new TArtEventStore();
+  TArtRawEventObject *rawevent = new TArtRawEventObject();
+  // return rawevent
+  rawevent = estore->GetRawEventObject();
+  // Open input file (ridf file)
+  estore->Open(ifname); 
+   
+  //===== Define output file (ROOT file) ===========================
+  TFile *fout = new TFile(ofname, "RECREATE");
+  
+  //===== Define tree =============================
+  TTree *tree = new TTree("tree","tree");
+  
+  //===== Define Histogram ========================
+  TH2D *hv1190[6];
+  hv1190[0] = new TH2D(Form("hv1190_%d",0),"V1190 rawdata;ID;TDC(ch)",512,0,512,1000,0,10000);
+  hv1190[1] = new TH2D(Form("hv1190_%d",1),"V1190 Subtracted reference;ID;TDC(ch)",512,0,512,3000,-100000,-70000);
+  hv1190[2] = new TH2D(Form("hv1190_%d",2),"V1190_0 Subtracted reference;ID;TDC(ch)",128,0,128,3000,-100000,-70000);
+  hv1190[3] = new TH2D(Form("hv1190_%d",3),"V1190_1 Subtracted reference;ID;TDC(ch)",128,0,128,3000,-100000,-70000);
+  hv1190[4] = new TH2D(Form("hv1190_%d",4),"V1190_2 Subtracted reference;ID;TDC(ch)",128,0,128,3000,-100000,-70000);
+  hv1190[5] = new TH2D(Form("hv1190_%d",5),"V1190_3 Subtracted reference;ID;TDC(ch)",128,0,128,3000,-100000,-70000);
+  
+  TH2D *hv1190num = new TH2D("hv1190num","Multicplicities;ID;Multiplicities",512,0,512,10,0,10);
+
+	TString shv1190_0 = Form("Hit Position in sample (single);x (mm);y (mm)             (run%04d)",run);
+	TString shv1190_1 = Form("Hit Position in sample (double);x (mm);y (mm)             (run%04d)",run);
+	TString shv1190_2 = Form("Hit Position in sample (single+double);x (mm);y (mm)      (run%04d)",run);
+	TString shv1190_3 = Form("Hit Position in sample (sample size,s+d);x (mm);y (mm)    (run%04d)",run);
+	TString shv1190_4 = Form("Hit Position in sample_UP   (single+double);x (mm);y (mm) (run%04d)",run);
+	TString shv1190_5 = Form("Hit Position in sample_DOWN (single+double);x (mm);y (mm) (run%04d)",run);
+	TString shv1190_6 = Form("Hit Position in sample_UP   (s+d);x (mm);y (mm)           (run%04d)",run);
+	TString shv1190_7 = Form("Hit Position in sample_DOWN (s+d);x (mm);y (mm)           (run%04d)",run);
+
+  TH2D *htracking[8];
+  htracking[0] = new TH2D("htracking0",shv1190_0,100,-50,50,100,-50,50);
+  htracking[1] = new TH2D("htracking1",shv1190_1,100,-50,50,100,-50,50);
+  htracking[2] = new TH2D("htracking2",shv1190_2,100,-50,50,100,-50,50);
+  htracking[3] = new TH2D("htracking3",shv1190_3,100,-50,50,100,-50,50);
+  htracking[4] = new TH2D("htracking4",shv1190_4,100,-50,50,100,-50,50);
+  htracking[5] = new TH2D("htracking5",shv1190_5,100,-50,50,100,-50,50);
+  htracking[6] = new TH2D("htracking6",shv1190_6,100,-50,50,100,-50,50);
+  htracking[7] = new TH2D("htracking7",shv1190_7,100,-50,50,100,-50,50);
+
+  TH2D *hFired_Tnum = new TH2D("hFired_Tnum","Number of hits of each layer;layer;Number",8,0,8,10,0,10);
+
+  TH2D *hFired_Vsum = new TH2D("hFired_Vnum","Number of hits of each module;module;Number",4,0,4,20,0,20);
+
+  TH3D* himgup = new TH3D("himgup","image up"  ,60,-25,25,60,-25,25,60,-25,25);
+  TH3D* himgdn = new TH3D("himgdn","image down",60,-25,25,60,-25,25,60,-25,25);
+
+  //===== Define Variables ========================
+  //===== time stemp =====
+  int Nevent;
+  unsigned long long ts0[2];
+  double ts;
+  double clock;
+  //===== V1190 =====
+  int    v1190raw    [4][128][5];
+  int    v1190num    [4][128];  
+  int    v1190ref    [4];
+  double v1190       [4][128][5];
+  bool   Fired_V     [4][128];
+  double leading     [4][128];
+  double trailing    [4][128];
+  double tot         [4][128];
+  int    Fired_Vsum  [4];
+  //===== After Relining up =====
+  bool   Fired_T     [2][2][2][64];     //[x/y][UP/DOWN][1st/2nd][#]
+  double Fiber_T     [2][2][2][64][5];  //[x/y][UP/DOWN][1st/2nd][#][5]
+  double Fiber_L     [2][2][2][64];     //[x/y][UP/DOWN][1st/2nd][#]
+  double Fiber_Tr    [2][2][2][64];     //[x/y][UP/DOWN][1st/2nd][#]
+  double Fiber_Q     [2][2][2][64];     //[x/y][UP/DOWN][1st/2nd][#]
+  int    Tnum        [2][2][2][64];     //[x/y][UP/DOWN][1st/2nd][#]
+  int    Fired_Tnum  [2][2][2];         //[x/y][UP/DOWN][1st/2nd]
+  bool   sd;                            //single or double hit, true = single  
+  bool   TrackAvailable;                // Tracking is available or not
+  //===== For calcuration =====
+  int    Fired_UD       [3];         // Statistics of Fired event ( [UP/DOWN/BOTH] )
+  int    Fired_Ly [2][2][2] = {0};   // Statistics of Fired event ( [x/y][UP/DOWN][1st/2nd] )
+  int    Pcount         [2];         // [UP/DOWN], total number of events that hit UP/DOWN plastic scintillator
+  //==== For the line ====
+  double a           [2][2];   //[x/y'][1st/2nd], x/y' coordinates on 1st/2nd layer
+  double t;                    //parameter of the line
+  int    ud;                   //If positron goes up: ud = 0, goes down: ud = 1, otherwise: ud = 2
+  int    Tcount      [2] = {}; //[UP/DOWN], total number of events used for tracking
+  //==== For the intersection between the line and the sample ====
+  double b;                    //y' coordinate of in y'-z coordinate
+  double z;                    //z coordinate in y'-z coordinate
+  double x;                    //x coordinate both in y'-z coordinate and x-y coordinate
+  double y;                    //y coordinate in x-y coordinate(on the sample)
+  double x0;                   //x in 1st layer 
+  double y0;                   //y in 1st layer 
+  double z0;                   //z in 1st layer 
+  double x1;                    //x in 2nd layer 
+  double y1;                    //y in 2nd layer 
+  double z1;                    //z in 2nd layer 
+  double x2;                   //x in 3rd layer 
+  double y2;                   //y in 3rd layer 
+  double z2;                   //z in 3rd layer 
+  double x3;                    //x in 4th layer 
+  double y3;                    //y in 4th layer 
+  double z3;                    //z in 4th layer 
+  //==== Extracted positions ====
+  double X0;                   //X in 1st layer 
+  double Y0;                   //Y in 1st layer 
+  double Z0;                   //Z in 1st layer 
+  double X1;                   //X in 2nd layer 
+  double Y1;                   //Y in 2nd layer 
+  double Z1;                   //Z in 2nd layer 
+  //===== Set branches of tree ====================
+  //===== time stamp =====
+  tree->Branch("Nevent"     ,&Nevent    ,"Nevent                      /I");
+  tree->Branch("ts0"        ,ts0        ,"ts0        [2]              /l");
+  tree->Branch("ts"         ,&ts        ,"ts                          /D");
+  tree->Branch("clock"      ,&clock     ,"clock                       /D");
+  //===== V1190 =====
+  tree->Branch("v1190raw"   ,v1190raw   ,"v1190raw   [4][128][5]     /I");
+  tree->Branch("v1190num"   ,v1190num   ,"v1190num   [4][128]         /I");
+  tree->Branch("v1190ref"   ,v1190ref   ,"v1190ref   [4]              /I");
+  tree->Branch("v1190"      ,v1190      ,"v1190      [4][128][5]     /D");
+  tree->Branch("Fired_V"    ,Fired_V    ,"Fired_V    [4][128]         /O");
+  tree->Branch("leading"    ,leading    ,"leading    [4][128]         /D");
+  tree->Branch("trailing"   ,trailing   ,"trailing   [4][128]         /D");
+  tree->Branch("tot"        ,tot        ,"tot        [4][128]         /D");
+  //===== After Relining =====
+  tree->Branch("Fired_T"    ,Fired_T    ,"Fired_T    [2][2][2][64]    /O");
+  tree->Branch("Fiber_T"    ,Fiber_T    ,"Fiber_T    [2][2][2][64][5]/D");
+  tree->Branch("Fiber_L"    ,Fiber_L    ,"Fiber_L    [2][2][2][64]    /D");
+  tree->Branch("Fiber_Tr"   ,Fiber_Tr   ,"Fiber_Tr   [2][2][2][64]    /D");
+  tree->Branch("Fiber_Q"    ,Fiber_Q    ,"Fiber_Q    [2][2][2][64]    /D");
+  tree->Branch("Tnum"       ,Tnum       ,"Tnum       [2][2][2][64]    /I");
+  tree->Branch("Fired_Tnum" ,Fired_Tnum ,"Fired_Tnum [2][2][2]        /I");
+  //===== For Tracking =====
+  tree->Branch("x"          ,&x         ,"x                           /D");
+  tree->Branch("y"          ,&y         ,"y                           /D");
+  tree->Branch("ud"         ,&ud        ,"ud                          /I");
+  tree->Branch("Tcount"     ,Tcount     ,"Tcount     [2]              /I");
+  tree->Branch("X0"         ,&X0        ,"X0                          /D");
+  tree->Branch("Y0"         ,&Y0        ,"Y0                          /D");
+  tree->Branch("X1"         ,&X1        ,"X1                          /D");
+  tree->Branch("Y1"         ,&Y1        ,"Y1                          /D");
+  tree->Branch("x0"         ,&x0        ,"x0                          /D");
+  tree->Branch("x1"         ,&x1        ,"x1                          /D");
+  tree->Branch("x2"         ,&x2        ,"x2                          /D");
+  tree->Branch("x3"         ,&x3        ,"x3                          /D");
+  tree->Branch("y0"         ,&y0        ,"y0                          /D");
+  tree->Branch("y1"         ,&y1        ,"y1                          /D");
+  tree->Branch("y2"         ,&y2        ,"y2                          /D");
+  tree->Branch("y3"         ,&y3        ,"y3                          /D");
+  tree->Branch("z0"         ,&z0        ,"z0                          /D");
+  tree->Branch("z1"         ,&z1        ,"z1                          /D");
+  tree->Branch("z2"         ,&z2        ,"z2                          /D");
+  tree->Branch("z3"         ,&z3        ,"z3                          /D");
+  //=====For Calculate =====
+  tree->Branch("Pcount"     ,Pcount     ,"Pcount     [2]              /I");
+  //================================================
+
+	// ===== Variables Initialization
+  for(int i = 0; i < 3; i++){
+    Fired_UD[i] = 0;
+  }
+
+  // event counter
+  int neve = 0; 
+  
+  //=====  Event Loop & Decode ================================
+  while(estore->GetNextEvent() && keeploop){
+
+	  // ===== Variables Initialization
+    ud = 2;
+
+    if(Nevent%100==0){
+      std::cout << " decoded " << Nevent << "events" << std::flush << "\r";
+    }
+    
+	  TrackAvailable = false;
+    Nevent = rawevent->GetEventNumber();
+
+    if(Nevent<0){ continue;}
+    
+    // Number of segment
+    int numseg = rawevent->GetNumSeg();
+    
+    //===== Initialize variables =======================
+    for(int i=0;i<4;i++){ 
+      for(int m=0;m<128;m++)for(int n=0;n<5;n++)v1190raw[i][m][n] = -100;
+      for(int m=0;m<128;m++)v1190num[i][m] = 0;
+    }
+
+    //===== Segment Loop ==============================
+    for(int i=0; i<numseg; i++){
+      TArtRawSegmentObject *seg = rawevent->GetSegment(i);
+      int dev=seg->GetDevice(); // ex. BigRIPS
+      int fpl=seg->GetFP(); // F5
+      int det=seg->GetDetector();  // PPAC-T
+      int mod=seg->GetModule(); // C16 16bit Fixed (TDC)
+      int num=seg->GetNumData(); // 20ch
+      
+      if(Nevent==1){
+	      cout <<"(SEG,dev,fpl,det,mod,ndata)=("
+	           <<i<<","<<dev<<","<<fpl<<","<<det<<","<<mod<<","<<num<<")"<<endl;
+      }
+      
+      //===== Data read from one segment ===============
+      for(int j=0; j<num; j++){	    
+	      TArtRawDataObject *d = seg->GetData(j);
+	      // data(buffer)
+	      unsigned int buf = d->GetVal();
+	      // channel
+	      int ch = d->GetCh();
+	
+	//===== Data filling ====================
+	//===== time stamp ==================
+	// ch0: lower 32 bit of time stamp
+	// ch1: higher 16 bit of time stamp
+	// ch2: 10k clock
+	// ch3: Event number
+	// if(dev==segTS[0] && fpl==segTS[1] && det==segTS[2]){
+	//if(dev==0 && fpl==2 && det==47){
+	if(dev==0 && fpl==2 && det==48){
+	  switch(ch){
+	  case 0: ts0[0] = buf;break;
+	  case 1: ts0[1] = buf;break;
+	  case 2: clock = buf * 1e-4 ;break;
+	  case 3: Nevent = buf;break;
+	  }
+	}
+
+	//===== V1190 =======================
+       	// if(dev==segV1190[0] && fpl==segV1190[1] && det==segV1190[2]){
+	if(dev==0 && fpl==0 && det==1){
+	  if(v1190num[0][ch]<5)v1190raw[0][ch][ v1190num[0][ch] ] = buf;
+	  v1190num[0][ch]++;
+	}
+	
+	if(dev==0 && fpl==0 && det==2){
+	  if(v1190num[1][ch]<5)v1190raw[1][ch][ v1190num[1][ch] ] = buf;
+	  v1190num[1][ch]++;
+	}
+
+	if(dev==0 && fpl==0 && det==3){
+	  if(v1190num[2][ch]<5)v1190raw[2][ch][ v1190num[2][ch] ] = buf;
+	  v1190num[2][ch]++;
+	}
+
+	if(dev==0 && fpl==0 && det==4){
+	  if(v1190num[3][ch]<5)v1190raw[3][ch][ v1190num[3][ch] ] = buf;
+	  v1190num[3][ch]++;
+	}
+	//====================================
+	
+      } // End of loop in one segment
+    }	// End of loop in one event
+
+    //===== For time stamp =====
+    ts = ts0[0] + (ts0[1] << 32);
+    ts = ts * 1e-8;
+    //===== Subtract time reference from rawdata of V1190 =====
+    // reference
+    v1190ref[0] = v1190raw[0][127][0];
+    v1190ref[1] = v1190raw[1][127][0];
+    v1190ref[2] = v1190raw[2][127][0];
+    v1190ref[3] = v1190raw[3][127][0];
+    
+    for(int l=0;l<4;l++){
+      for(int m=0;m<128;m++){
+	      for(int n=0;n<5;n++){
+	        v1190[l][m][n] = v1190raw[l][m][n] - v1190ref[l] + 10000.;
+	      }
+      }
+    }
+    
+    //===== Redefine ============================
+    //=== Initialize ===
+    for(int i=0;i<4;i++){
+      for(int j=0;j<128;j++){
+	      leading[i][j]  = -9999.;
+	      trailing[i][j] = -9999.;
+	      tot[i][j]      = -2000.;
+	      Fired_V[i][j]  = false;
+      }
+    }
+
+		// v1190raw[0][120]: Uo   , v1190raw[0][121]: Ui, 
+		// v1190raw[0][122]: Di   , v1190raw[0][123]: Do, 
+    for(int j = 120; j < 124; j++){
+      bool flag = true;
+      for(int k=0;k<4;k++){
+	if(8800 < v1190raw[0][j][k] && 10000 > v1190raw[0][j][k] && flag){
+	  leading [0][j]  = v1190   [0][j][k];
+	  trailing[0][j]  = v1190   [0][j][k+1];
+	  tot     [0][j]  = trailing[0][j] - leading[0][j];
+	  flag            = false;
+	}
+      }
+    }
+    
+    ud = (tot[0][120] > 0 && tot[0][121] > 0 ) ? 0 : ud; // UP Positron counter
+    ud = (tot[0][122] > 0 && tot[0][123] > 0 ) ? 1 : ud; // DN Positron counter
+    
+    if(ud == 2) {
+      neve++;
+      continue;
+    }
+    
+    int N_Fired = 0;
+    
+    for(int i=0;i<4;i++){
+      for(int j=1;j<112;j++){
+	if( ( i==0 || i==1 ) && ( 64 <= j && j < 96 ) ) continue;
+	bool flag = true;
+	for(int k=0;k<4;k++){
+	  if(tdcgate[0][i][j] != 999.){
+	    if(7800 < v1190raw[i][j][k] && 9400 > v1190raw[i][j][k] && flag){
+	      Fired_V [i][j]  = true;
+	      leading [i][j]  = v1190   [i][j][k];
+	      trailing[i][j]  = v1190   [i][j][k+1];
+	      tot     [i][j]  = trailing[i][j] - leading[i][j];
+	      flag            = false;
+	      N_Fired++ ;
+	    }
+	  }
+	}
+      }
+    }
+
+		if(N_Fired < 4) {
+		  neve ++;
+		  continue;
+		}
+
+		//cout << N_Fired << endl;
+
+    for(int i=0;i<4;i++){
+      Fired_Vsum[i] = 0;
+      for(int j=0;j<128;j++){
+	      if(Fired_V[i][j]){
+	        Fired_Vsum[i]++;
+	      }
+      }
+    }
+
+    for(int i=0;i<4;i++){
+      hFired_Vsum->Fill(i,Fired_Vsum[i]);
+    }
+    
+    //===== Reconstruction ======================
+    //=== Initialize ===
+    for(int i=0;i<2;i++){ //x or y
+	    for(int k=0;k<2;k++){ //1st or 2nd
+	      for(int l=0;l<64;l++){ //ch
+	        Fired_T [i][ud][k][l] = false;
+	        Tnum    [i][ud][k][l] = 0;
+	        Fiber_L [i][ud][k][l] = -9999.;
+	        Fiber_Tr[i][ud][k][l] = -9999.;
+	        Fiber_Q [i][ud][k][l] = -2000.;
+	        for(int m=0;m<5;m++){
+	          Fiber_T[i][ud][k][l][m] = -9999.;
+	        }
+	      }
+	    }
+    }
+    
+    //=== Reline up ===================
+		// Loop through indices i, j, k
+    for (int i = 0; i < 2; i++) { // x or y
+      for (int j = 0; j < 2; j++) { // 1st or 2nd
+        for (int k = 0; k < 64; k++) { // ch
+          int tch = Fiber_Tch[i][ud][j][k];
+    
+          if (tch != 999) {
+            int groupIndex = tch / 10000;
+            int offset = tch % 10000;
+    
+            if (groupIndex >= 0 && groupIndex <= 3 && Fired_V [ groupIndex ] [ offset ] ) {
+              Fired_T  [i][ud][j][k] = Fired_V  [ groupIndex ] [ offset ];
+              Fiber_L  [i][ud][j][k] = leading  [ groupIndex ] [ offset ];
+              Fiber_Tr [i][ud][j][k] = trailing [ groupIndex ] [ offset ];
+              Fiber_Q  [i][ud][j][k] = tot      [ groupIndex ] [ offset ];
+              Tnum     [i][ud][j][k] = v1190num [ groupIndex ] [ offset ];
+    
+              for (int l = 0; l < 5; l++) {
+                Fiber_T[i][ud][j][k][l] = v1190 [ groupIndex ] [ offset ] [ l ];
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    //== for y =========      
+    //for (int i = 0; i < 2; i++) {
+    //  for (int j = 0; j < 2; j++) {
+    //    for (int k = 0; k < 64; k++) {
+    //      int tch = Fiber_Tch[1][i][j][k];
+    //
+    //      if (tch != 999) {
+    //        int groupIndex = tch / 10000;
+    //        int offset = tch % 10000;
+    //
+    //        if (groupIndex >= 0 && groupIndex <= 3 && Fired_V[groupIndex][offset]) {
+    //          Fired_T [1][i][j][k] = Fired_V  [ groupIndex ] [ offset ];
+    //          Fiber_L [1][i][j][k] = leading  [ groupIndex ] [ offset ];
+    //          Fiber_Tr[1][i][j][k] = trailing [ groupIndex ] [ offset ];
+    //          Fiber_Q [1][i][j][k] = tot      [ groupIndex ] [ offset ];
+    //          Tnum    [1][i][j][k] = v1190num [ groupIndex ] [ offset ];
+    //                                                                         
+    //          for (int l = 0; l < 5; l++) {                                  
+    //            Fiber_T[1][i][j][k][l] = v1190 [ groupIndex ] [ offset ] [ l ];
+    //          }
+    //        }
+    //      }
+    //    }
+    //  }
+    //}
+  
+    //===== Calculation ======================
+    //if(v1190[0][120][0] > -82600 && v1190[0][120][0] < -82000){
+    //  Pcount[0]++;
+    //}
+    //if(v1190[0][123][0] > -82700 && v1190[0][123][0] < -82100){
+    //  Pcount[1]++;
+    //}
+
+    for(int i = 0; i < 2; i++){ // x or y
+      for(int k = 0; k < 2; k++){ // inner or outer
+	Fired_Tnum[i][ud][k] = 0;
+	for(int l = 0; l < 64; l++){
+	  // 各層で鳴った回数
+	  Fired_Tnum[i][ud][k] += Fired_T[i][ud][k][l] ? 1 : 0;
+	}
+	if(Fired_Tnum[i][ud][k] != 0){
+	  hFired_Tnum->Fill(4 * i + 2 * ud + k,Fired_Tnum[i][ud][k]);
+	}
+      }
+    }
+    
+    if(Fired_Tnum[0][ud][0] * Fired_Tnum[0][ud][1] * Fired_Tnum[1][ud][0] * Fired_Tnum[1][ud][1] > 0){
+      Fired_UD[ud]++;
+      TrackAvailable = true;
+    }
+    
+    for ( int i = 0; i < 2; i++) {
+      for ( int j = 0; j < 2; j++) {
+	if ( Fired_Tnum[i][ud][j] ) Fired_Ly[i][ud][j]++ ;
+      }
+    }
+    
+    //cout << TrackAvailable << endl;
+    //cout << Fired_Tnum[0][ud][0] << endl;
+    //cout << Fired_Tnum[0][ud][1] << endl;
+    
+    if(!TrackAvailable){
+      neve ++;
+      continue;
+    }
+    
+    //========= Tracking ======================
+    for(int i = 0; i < 2; i++) for(int j = 0; j < 2; j++) a[i][j] = 999.0;
+
+    t = 999.0;
+    b = 999.0;
+    z = 999.0;
+    x = 999.0;
+    y = 999.0;
+    sd = false;
+    double TOT_th[2] = { 0., 600.};
+    
+    // === Hit position in each layer ===
+    for (int i = 0; i < 64; i++) {
+      for (int j = 0; j < 2; j++) { // x or y
+        for (int l = 0; l < 2; l++) { // Inner or Outer
+          if (Fired_Tnum[j][ud][l] > 0 && TOT_th[0] < Fiber_Q[j][ud][l][i] && Fiber_Q[j][ud][l][i] < TOT_th[1] ) { // 鳴っていたならば
+						if (Fired_T[j][ud][l][i]) {
+						  // 一層の場合
+						  a[j][l] = (double)i - 32.5;
+						}
+						else if (i < 63 && Fired_T[j][ud][l][i] && Fired_T[j][ud][l][i + 1] && TOT_th[0] < Fiber_Q[j][ud][l][i + 1] && Fiber_Q[j][ud][l][i + 1] < TOT_th[1] ) {
+						  // 二箇所並んで鳴っていたならば
+						  a[j][l] = (double)(i + i + 1) / 2 - 32.5;
+						}
+          } 
+        } 
+      }
+    }
+    
+    if( a[0][0] + a[0][1] + a[1][0] + a[1][1] > 500 ){
+      neve++;
+      continue;
+    }
+    
+    x0 = -999., y0 = -999., z0 = -999., x1 = -999., y1 = -999., z1 = -999.;
+    x2 = -999., y2 = -999., z2 = -999., x3 = -999., y3 = -999., z3 = -999.;
+    X0 = -999., Y0 = -999., Z0 = -999., X1 = -999., Y1 = -999., Z1 = -999.;
+    double dX = -999, dY = -999, dZ = -999;
+    double tT = 0.5; // Tracker Thickness
+    double pT = 3  ; // Plate Thickness
+    
+    // === UP ===
+    if(Fired_Tnum[0][0][0] * Fired_Tnum[0][0][1] * Fired_Tnum[1][0][0] * Fired_Tnum[1][0][1] > 0){
+      
+      x1 = a[0][0], x3 = a[0][1], y0 = a[1][0], y2 = a[1][1];
+      
+      z0 = 13 - tT;
+      z1 = 13 + pT + tT;
+      z2 = 52 - tT;
+      z3 = 52 + pT + tT;
+      
+      t = - ( z3 - z2 ) / ( z3 - z1 );
+      x2 = x3 + t * ( x3 - x1 );
+      
+      t = ( z1 - z0 ) / ( z2 - z0);
+      y1 = y0 + t * ( y2 - y0 );
+
+      X0 = x1, Y0 = y1, Z0 = z1;
+      X1 = x2, Y1 = y2, Z1 = z2;
+      
+      dX = X1 - X0;
+      dY = Y1 - Y0;
+      dZ = Z1 - Z0;
+      t  = - ( Z0 - Y0 ) / ( dZ - dY ); 
+      
+      x  = X0 + t * dX;     
+      y  = Y0 + t * dY;
+      z  = y;
+      himgup->Fill(x,y,z);
+      y *= sqrt(2);
+      
+      htracking[1]->Fill(x,y);
+      htracking[2]->Fill(x,y);
+      htracking[4]->Fill(x,y);
+      
+      if (x >= -10.5 && x <= 10.5 && y >= -10.5 && y <= 10.5) {
+        htracking[3]->Fill(x, y);
+        htracking[6]->Fill(x, y);
+      }
+      
+      Tcount[0]++;
+      
+    }
+    
+    // === DOWN ===
+    if(Fired_Tnum[0][1][0] * Fired_Tnum[0][1][1] * Fired_Tnum[1][1][0] * Fired_Tnum[1][1][1] > 0){
+
+      x1 = a[0][0], x3 = a[0][1], y0 = a[1][0], y2 = a[1][1];
+      
+      tT = -0.5, pT = -3.0;
+      
+      z0 = -13 - tT;
+      z1 = -13 + pT + tT;
+      z2 = -52 - tT;
+      z3 = -52 + pT + tT;
+      
+      t = - ( z3 - z2 ) / ( z3 - z1 );
+      x2 = x3 + t * ( x3 - x1 );
+      
+      t = ( z1 - z0 ) / ( z2 - z0);
+      y1 = y0 + t * ( y2 - y0 );
+      
+      X0 = x1, Y0 = y1, Z0 = z1;
+      X1 = x2, Y1 = y2, Z1 = z2;
+      
+      dX = X1 - X0;
+      dY = Y1 - Y0;
+      dZ = Z1 - Z0;
+      t  = - ( Z0 - Y0 ) / ( dZ - dY ); 
+
+      x  = X0 + t * dX;     
+      y  = Y0 + t * dY;
+      z  = y;
+      himgdn->Fill(x,y,z);
+      y *= sqrt(2);
+      
+      htracking[1]->Fill(x,y);
+      htracking[2]->Fill(x,y);
+      htracking[5]->Fill(x,y);
+      
+      if (x >= -10.5 && x <= 10.5 && y >= -10.5 && y <= 10.5) {
+        htracking[3]->Fill(x, y);
+        htracking[7]->Fill(x, y);
+      }
+      
+      Tcount[1]++;
+      
+    }
+    
+    //===== Fill data in histogram ===========
+    for(int m=0;m<128;m++){
+      for(int n=0;n<10;n++){
+	if(v1190num[0][m]>n){
+	  hv1190[0]->Fill(m,v1190raw[0][m][n]);
+	  hv1190[1]->Fill(m,v1190[0][m][n]);
+	  hv1190[2]->Fill(m,v1190[0][m][n]);
+	}
+	if(v1190num[1][m]>n){
+	  hv1190[0]->Fill(128+m,v1190raw[1][m][n]);
+	  hv1190[1]->Fill(128+m,v1190[1][m][n]);
+	  hv1190[3]->Fill(m,v1190[1][m][n]);
+	}
+	if(v1190num[2][m]>n){
+	  hv1190[0]->Fill(256+m,v1190raw[2][m][n]);
+	  hv1190[1]->Fill(256+m,v1190[2][m][n]);
+	  hv1190[4]->Fill(m,v1190[2][m][n]);
+	}
+	if(v1190num[3][m]>n){
+	  hv1190[0]->Fill(384+m,v1190raw[3][m][n]);
+	  hv1190[1]->Fill(384+m,v1190[3][m][n]);
+	  hv1190[5]->Fill(m,v1190[3][m][n]);
+	}
+      }
+    }
+    
+    for(int i=0;i<128;i++){
+      hv1190num->Fill(i,v1190num[0][i]);
+      hv1190num->Fill(128+i,v1190num[1][i]);
+      hv1190num->Fill(256+i,v1190num[2][i]);
+      hv1190num->Fill(384+i,v1190num[3][i]);
+    }
+    
+    //===== Fill data in tree ================
+    tree->Fill();  
+    neve++;
+
+    if(Nevent%100==0){
+      std::cout << " decoded " << Nevent << "events" << std::flush << "\r";
+    }
+    
+    if(Nevent > 100000) break;
+
+  } // End of event loop
+
+  cout << "" << endl;
+  cout << "====== Statistics ======" << endl;
+  cout << "Total Event : " << neve << endl;
+	cout << "" << endl;
+	cout << "==== UP ====" << endl;
+	cout << "x1       : " << Fired_Ly[0][0][0] << ", " << double(Fired_Ly[0][0][0]) / double(neve) << endl;
+	cout << "x2       : " << Fired_Ly[0][0][1] << ", " << double(Fired_Ly[0][0][1]) / double(neve) << endl;
+	cout << "y1       : " << Fired_Ly[1][0][0] << ", " << double(Fired_Ly[1][0][0]) / double(neve) << endl;
+	cout << "y2       : " << Fired_Ly[1][0][1] << ", " << double(Fired_Ly[1][0][1]) / double(neve) << endl;
+	cout << "ALL (&&) : " << Fired_UD[0]       << ", " << double(Fired_UD[0])       / double(neve) << endl;
+	cout << "==== DOWN ====" << endl;
+	cout << "x1       : " << Fired_Ly[0][1][0] << ", " << double(Fired_Ly[0][0][0]) / double(neve) << endl;
+	cout << "x2       : " << Fired_Ly[0][1][1] << ", " << double(Fired_Ly[0][0][1]) / double(neve) << endl;
+	cout << "y1       : " << Fired_Ly[1][1][0] << ", " << double(Fired_Ly[1][0][0]) / double(neve) << endl;
+	cout << "y2       : " << Fired_Ly[1][1][1] << ", " << double(Fired_Ly[1][0][1]) / double(neve) << endl;
+	cout << "ALL (&&) : " << Fired_UD[1]       << ", " << double(Fired_UD[0])       / double(neve) << endl;
+	cout << "" << endl;
+  cout << "UP:DOWN =  " << Tcount[0] << " : " << Tcount[1] << endl;
+	cout << "Tracked Events ratio [%] : " << double( Tcount[0] + Tcount[1] ) / double(neve) * 100 << endl;
+
+  //cout << "Fired_UD(BOTH) = " << Fired_UD[2] << endl;
+
+  //cout << "Total number of events UP:DOWN =  " << Pcount[0] << " : " << Pcount[1] << endl;
+
+  fout->Write();
+  
+  return 0;
+}
