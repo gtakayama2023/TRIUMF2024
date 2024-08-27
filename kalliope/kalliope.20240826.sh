@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define constants
-TODAY="0808"  # For testing, set today manually
+TODAY="track"  # For testing, set today manually
 RAW_DIR="../RAW"
 ROOT_DIR="../ROOT"
 

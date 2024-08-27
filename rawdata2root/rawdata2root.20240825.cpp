@@ -258,14 +258,39 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       exit(1); // terminate with error
     }
   }
-  if(runN<10)       ofname = Form("../ROOT/%s/MSE00000%d.root",path.c_str(),runN);
-  else if(runN<100) ofname = Form("../ROOT/%s/MSE0000%d.root", path.c_str(),runN);
-  else              ofname = Form("../ROOT/%s/MSE000%d.root",  path.c_str(),runN);
+  if(runN<10)       ofname = Form("../ROOT/%s_MSE00000%d.root",path.c_str(),runN);
+  else if(runN<100) ofname = Form("../ROOT/%s_MSE0000%d.root", path.c_str(),runN);
+  else              ofname = Form("../ROOT/%s_MSE000%d.root",  path.c_str(),runN);
   cout << "create root file :" << ofname << endl;
  
   TFile *f = new TFile(ofname,"RECREATE");
 
   TTree *tree = new TTree("tree","tree");
+
+	//===== Statistics file =====
+	TString stat_name;
+  if(runN<10)       stat_name = Form("../ROOT/%s_MSE00000%d.html",path.c_str(),runN);
+  else if(runN<100) stat_name = Form("../ROOT/%s_MSE0000%d.html", path.c_str(),runN);
+  else              stat_name = Form("../ROOT/%s_MSE000%d.html",  path.c_str(),runN);
+  std::ofstream stat_file(stat_name);
+
+  stat_file << "<!DOCTYPE html>\n";
+  stat_file << "<html lang=\"en\">\n";
+  stat_file << "<head>\n";
+  stat_file << "    <meta charset=\"UTF-8\">\n";
+  stat_file << "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
+  stat_file << "    <title>Event Statistics</title>\n";
+  stat_file << "    <style>\n";
+  stat_file << "        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }\n";
+  stat_file << "        .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }\n";
+  stat_file << "        h1 { text-align: center; color: #333; }\n";
+  stat_file << "        p { margin: 10px 0; padding: 10px; background-color: #e9ecef; border-radius: 4px; }\n";
+  stat_file << "        .label { font-weight: bold; }\n";
+  stat_file << "        th, td { width: 150px; } /* 列の幅を指定 */\n";
+  stat_file << "    </style>\n";
+  stat_file << "</head>\n";
+  stat_file << "<body>\n";
+  stat_file << "    <div class=\"container\">\n";
   
   //===== Initialize =====
   for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_Kal_L[i][j][k]=0;
@@ -348,7 +373,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   vector<TH2F*> hTS_diff;
   hTS_diff.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hTS_diff[i] = new TH2F(Form("hTS_diff_%d",i),Form("#it{TS}_{Kal}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} [s]; #it{TS}_{Kal}(%d) - #it{TS}_{NIM} [s]",i, i), 1000, 0, 10, 1000, -2e-5, 2e-5);
+    hTS_diff[i] = new TH2F(Form("hTS_diff_%d",i),Form("#it{TS}_{Kal}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} [s]; #it{TS}_{Kal}(%d) - #it{TS}_{NIM} [s]",i, i), 1000, 0, 20, 1000, -4e-5, 4e-5);
   }
   TH2F *hTS_diff_2D;
   hTS_diff_2D = new TH2F("hTS_diff_2D","hTS_diff_2D; Kalliope IP; TS_diff",12,0,12,1000,-1e-6,1e-6);
@@ -766,8 +791,6 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       }
     }
 
-		//cout << TS_diff[0] << ", " << dTS_diff[1] << endl;
-  
     //===== Display Procedure of Event Loop =====
 		if(N_event[0] == 0) cout << endl;
     if(N_event[0] %1000 == 0){
@@ -807,16 +830,38 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       cout << "--------------------------------------------------------------------------------" << endl;
       cout << "------ Events Mismatch ---------------------------------------------------------" << endl;
       cout << "--------------------------------------------------------------------------------" << endl;
-			cout << Form("%21s       ||%18s        |","Number of Events", "TS interval") << endl;
+			cout << Form("%21s       ||%18s        |","Number of Events", "TS interval [us]") << endl;
 			cout << Form("------------------------------------------------------- |") << endl;
 		  cout << Form("%7s | %7s | %7s || %6s | %6s | %6s |", "NIM", "Kal0", "Kal1", "NIM", "Kal[0]", "Kal[1]") << endl;
 			cout << Form("------------------------------------------------------- |") << endl;
+
+			// Statistics file
+      stat_file << "        <h1>Events Mismatch</h1>\n";
+      stat_file << "        <table>\n";
+      stat_file << "            <tr><th colspan=\"3\">Number of Events</th><th colspan=\"3\">TS Interval [us]</th></tr>\n";
+      stat_file << "            <tr>\n";
+      stat_file << "                <td>NIM</td>\n";
+      stat_file << "                <td>Kal0</td>\n";
+      stat_file << "                <td>Kal1</td>\n";
+      stat_file << "                <td>NIM</td>\n";
+      stat_file << "                <td>Kal[0]</td>\n";
+      stat_file << "                <td>Kal[1]</td>\n";
+      stat_file << "            </tr>\n";
 		}
 
     if (FILL_FLAG && SKIP_FLAG_new){
 		  cout << Form("%7d | %7d | %7d || %6.2f | %6.2f | %6.2f |",
 						        N_NIM_event,N_event[0],N_event[1], 1e6*dTS_NIM, 1e6*dTS_Kal[0], 1e6*dTS_Kal[1])     
 					 << endl;
+
+			// Statistics file
+      stat_file << "            <tr>\n";
+      stat_file << "                <td>" << N_NIM_event << "</td>\n";
+      stat_file << "                <td>" << N_event[0] << "</td>\n";
+      stat_file << "                <td>" << N_event[1] << "</td>\n";
+      stat_file << "                <td>" << Form("%6.2f",1e6*dTS_NIM   ) << "</td>\n";
+      stat_file << "                <td>" << Form("%6.2f",1e6*dTS_Kal[0]) << "</td>\n";
+      stat_file << "                <td>" << Form("%6.2f",1e6*dTS_Kal[1]) << "</td>\n";
 		}
 			// hogehoge
 
@@ -1086,6 +1131,21 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	cout << endl;
   tree->Write();
   f->Write();   
+
+  stat_file << "            </tr>\n";
+  stat_file << "        </table>\n";
+  stat_file << "        <h1>Event Statistics</h1>\n";
+  stat_file << "        <p><span class=\"label\">Total Execution Time:</span> " << Trun_total << " s</p>\n";
+  stat_file << "        <p><span class=\"label\">Total Number of Events:</span> " << N_event[0] << " events</p>\n";
+  stat_file << "        <p><span class=\"label\">Processing Speed (/s):</span> " << rate_ave << " cps</p>\n";
+  stat_file << "        <p><span class=\"label\">Total Trackable Events:</span> " << N_track << " event" << (N_track == 1 ? "" : "s") << "</p>\n";
+  stat_file << "        <p><span class=\"label\">Trackable Event Ratio:</span> " << std::fixed << std::setprecision(1) << (double)N_track/N_event[0]*100 << " %</p>\n";
+  stat_file << "    </div>\n";
+  stat_file << "</body>\n";
+  stat_file << "</html>\n";
+
+  stat_file.close();
+
 }
 
 void ThDACScan(int IP_max=0, bool fNIM=0, bool ftree=0, const string& path="test"){

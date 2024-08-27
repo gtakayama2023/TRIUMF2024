@@ -1,1 +1,1 @@
-./kalliope/kalliope.20240826.sh
+kalliope/kalliope.20240827.sh
