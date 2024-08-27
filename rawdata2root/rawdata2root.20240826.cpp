@@ -385,75 +385,77 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 
   //===== Histgram for Rawdata =====
 	// TDC-Leading
-  vector<TH1F*> hTDC_L_NIM;
-	hTDC_L_NIM.resize(32);
+  vector<TH1F*> hNIM_L;
+	hNIM_L.resize(32);
 	for (int jj=0; jj<32; jj++) {
-    hTDC_L_NIM[jj] = new TH1F(Form("hTDC_L_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TDC}_{Leading}; #it{TDC}_{Leading} [ns]; #it{counts}", jj), 1e3, -1e3, 7e4);
+    hNIM_L[jj] = new TH1F(Form("hTDC_L_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TDC}_{Leading}; #it{TDC}_{Leading} [ns]; #it{counts}", jj), 1e3, -1e3, 7e4);
 	}
-  vector<vector<TH1F*>> hTDC_L;
-  hTDC_L.resize(IP_max);
+  vector<vector<TH1F*>> hKAL_L;
+  hKAL_L.resize(IP_max);
   for (int i=0;i<IP_max;i++){
-		hTDC_L[i].resize(32);
+		hKAL_L[i].resize(32);
 		for (int jj=0; jj<32; jj++) {
-      hTDC_L[i][jj] = new TH1F(Form("hTDC_L_%d_ch%d", i, jj), Form("Kalliope(%02d) ch%02d | #it{TDC}_{Leading}; #it{TDC}_{Leading} [ns]; #it{counts}", i, jj), 1e3, -1e3, 7e4);
+      hKAL_L[i][jj] = new TH1F(Form("hTDC_L_%d_ch%d", i, jj), Form("Kalliope(%02d) ch%02d | #it{TDC}_{Leading}; #it{TDC}_{Leading} [ns]; #it{counts}", i, jj), 1e3, -1e3, 7e4);
 		}
   }
-  TH2F* hTDC_L2_NIM;
-  hTDC_L2_NIM = new TH2F(Form("hTDC_L2_NIM"), Form("NIM_TDC | #it{TDC}_{Leading}  ; #it{TDC} ch; #it{TDC}_{Leading} [ns]"), 32, 0, 32, 1e3, -1e3, 7e4);
-  vector<TH2F*> hTDC_L2;
-  hTDC_L2.resize(IP_max);
+  TH2F* hNIM_L2;
+  hNIM_L2 = new TH2F(Form("hNIM_L2"), Form("NIM_TDC | #it{TDC}_{Leading}  ; #it{TDC} ch; #it{TDC}_{Leading} [ns]"), 32, 0, 32, 1e3, -1e3, 7e4);
+  vector<TH2F*> hKAL_L2;
+  hKAL_L2.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hTDC_L2[i] = new TH2F(Form("hTDC_L2_%d",i), Form("Kalliope(%02d) | #it{TDC}_{Leading}  ; #it{TDC} ch; #it{TDC}_{Leading} [ns]", i), 32, 0, 32, 1e3, -1e3, 7e4);
+    hKAL_L2[i] = new TH2F(Form("hTDC_L2_%d",i), Form("Kalliope(%02d) | #it{TDC}_{Leading}  ; #it{TDC} ch; #it{TDC}_{Leading} [ns]", i), 32, 0, 32, 1e3, -1e3, 7e4);
   }
 
 	// TDC-Trailing
-  vector<TH1F*> hTDC_T_NIM;
-	hTDC_T_NIM.resize(32);
+  vector<TH1F*> hNIM_T;
+	hNIM_T.resize(32);
 	for (int jj=0; jj<32; jj++) {
-    hTDC_T_NIM[jj] = new TH1F(Form("hTDC_T_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TDC}_{Trailing}; #it{TDC}_{Trailing} [ns]; #it{counts}", jj), 1e3, -1e3, 7e4);
+    hNIM_T[jj] = new TH1F(Form("hTDC_T_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TDC}_{Trailing}; #it{TDC}_{Trailing} [ns]; #it{counts}", jj), 1e3, -1e3, 7e4);
 	}
-  vector<vector<TH1F*>> hTDC_T;
-  hTDC_T.resize(IP_max);
+  vector<vector<TH1F*>> hKAL_T;
+  hKAL_T.resize(IP_max);
   for (int i=0;i<IP_max;i++){
-		hTDC_T[i].resize(32);
+		hKAL_T[i].resize(32);
 		for (int jj=0; jj<32; jj++) {
-      hTDC_T[i][jj] = new TH1F(Form("hTDC_T_%d_ch%d", i, jj), Form("Kalliope(%02d) ch%02d | #it{TDC}_{Trailing} ; #it{TDC}_{Trailing} [ns]; #it{counts}", i, jj), 1e3, -1e3, 7e4);
+      hKAL_T[i][jj] = new TH1F(Form("hTDC_T_%d_ch%d", i, jj), Form("Kalliope(%02d) ch%02d | #it{TDC}_{Trailing} ; #it{TDC}_{Trailing} [ns]; #it{counts}", i, jj), 1e3, -1e3, 7e4);
 		}
   }
-  TH2F* hTDC_T2_NIM;
-  hTDC_T2_NIM = new TH2F(Form("hTDC_T2_NIM"), Form("NIM_TDC | #it{TDC}_{Trailing}  ; #it{TDC} ch; #it{TDC}_{Trailing} [ns]"), 32, 0, 32, 1e3, -1e3, 7e4);
-  vector<TH2F*> hTDC_T2;
-  hTDC_T2.resize(IP_max);
+  TH2F* hNIM_T2;
+  hNIM_T2 = new TH2F(Form("hNIM_T2"), Form("NIM_TDC | #it{TDC}_{Trailing}  ; #it{TDC} ch; #it{TDC}_{Trailing} [ns]"), 32, 0, 32, 1e3, -1e3, 7e4);
+  vector<TH2F*> hKAL_T2;
+  hKAL_T2.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hTDC_T2[i] = new TH2F(Form("hTDC_T2_%d",i), Form("Kalliope(%02d) | #it{TDC}_{Trailing} ; #it{TDC} ch; #it{TDC}_{Trailing} [ns]", i), 32, 0, 32, 1e3, -1e3, 7e4);
+    hKAL_T2[i] = new TH2F(Form("hTDC_T2_%d",i), Form("Kalliope(%02d) | #it{TDC}_{Trailing} ; #it{TDC} ch; #it{TDC}_{Trailing} [ns]", i), 32, 0, 32, 1e3, -1e3, 7e4);
   }
 
 	// TDC-TOT
-  vector<TH1F*> hTDC_TOT_NIM;
-	hTDC_TOT_NIM.resize(32);
+  vector<TH1F*> hNIM_TOT;
+	hNIM_TOT.resize(32);
 	for (int jj=0; jj<32; jj++) {
-    hTDC_TOT_NIM[jj] = new TH1F(Form("hTDC_TOT_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TOT}; #it{TOT} [ns]; #it{counts}", jj), 1e3, -1e1, 1e3);
+    hNIM_TOT[jj] = new TH1F(Form("hTDC_TOT_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TOT}; #it{TOT} [ns]; #it{counts}", jj), 1e3, -1e1, 1e3);
 	}
-  vector<vector<TH1F*>> hTDC_TOT;
-  hTDC_TOT.resize(IP_max);
+  vector<vector<TH1F*>> hKAL_TOT;
+  hKAL_TOT.resize(IP_max);
   for (int i=0;i<IP_max;i++){
-		hTDC_TOT[i].resize(32);
+		hKAL_TOT[i].resize(32);
 		for (int jj=0; jj<32; jj++) {
-      hTDC_TOT[i][jj] = new TH1F(Form("hTDC_TOT_%d_ch%d", i, jj), Form("Kalliope(%02d) ch%02d | #it{TOT}; #it{TOT} [ns]; #it{counts}", i, jj), 1e3, -1e1, 1e3);
+      hKAL_TOT[i][jj] = new TH1F(Form("hTDC_TOT_%d_ch%d", i, jj), Form("Kalliope(%02d) ch%02d | #it{TOT}; #it{TOT} [ns]; #it{counts}", i, jj), 1e3, -1e1, 1e3);
 		}
   }
-  TH2F* hTDC_TOT2_NIM = new TH2F(Form("hTDC_TOT2_NIM"), Form("NIM_TDC | #it{TOT}; #it{TDC} ch; #it{TOT} [ns]"), 32, 0, 32, 1e3, -1e1, 1e3);
-  vector<TH2F*> hTDC_TOT2;
-  hTDC_TOT2.resize(IP_max);
+  TH2F* hNIM_TOT2 = new TH2F(Form("hNIM_TOT2"), Form("NIM_TDC | #it{TOT}; #it{TDC} ch; #it{TOT} [ns]"), 32, 0, 32, 1e3, -1e1, 1e3);
+  vector<TH2F*> hKAL_TOT2;
+  hKAL_TOT2.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hTDC_TOT2[i] = new TH2F(Form("hTDC_TOT_%d", i), Form("Kalliope(%02d) | #it{TOT}; #it{TDC} ch; #it{TOT} [ns]",i), 32, 0, 32, 1e3, -1e1, 1e3);
+    hKAL_TOT2[i] = new TH2F(Form("hTDC_TOT_%d", i), Form("Kalliope(%02d) | #it{TOT}; #it{TDC} ch; #it{TOT} [ns]",i), 32, 0, 32, 1e3, -1e1, 1e3);
   }
 
 	// num
+  TH2F* hTraw_NIM_num;
+  hTraw_NIM_num = new TH2F(Form("hTraw_NIM_num_%d",i),Form("NIM_TDC | #it{Multiplicity}; #it{TDC} ch; Multiplicity"), 32, 0, 32, hitNmax, 0, hitNmax);
   vector<TH2F*> hTraw_Kal_num;
   hTraw_Kal_num.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hTraw_Kal_num[i] = new TH2F(Form("hTraw_Kal_num_%d",i),Form("Traw_Kal_num[%d]; TDC ch; Multiplicity",i),32,0,32,hitNmax,0,hitNmax);
+    hTraw_Kal_num[i] = new TH2F(Form("hTraw_Kal_num_%d",i),Form("Kalliope(%02d) | #it{Multiplicity}; #it{TDC} ch; Multiplicity",i), 32, 0, 32, hitNmax, 0, hitNmax);
   }
 
   //====== Histgram for Fiber ======
@@ -872,25 +874,26 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 
 		  for (int ii = 0; ii < 32; ii++) {
 				for (int jj = 0; jj < hitNmax; jj++) {
-	        hTDC_L_NIM  [ii] -> Fill(Traw_NIM_L  [ii][jj]);
-	        hTDC_T_NIM  [ii] -> Fill(Traw_NIM_T  [ii][jj]);
-	        hTDC_TOT_NIM[ii] -> Fill(Traw_NIM_TOT[ii][jj]);
-	        hTDC_L2_NIM   -> Fill(ii, Traw_NIM_L  [ii][jj]);
-	        hTDC_T2_NIM   -> Fill(ii, Traw_NIM_T  [ii][jj]);
-	        hTDC_TOT2_NIM -> Fill(ii, Traw_NIM_TOT[ii][jj]);
+	        hNIM_L  [ii] -> Fill(Traw_NIM_L  [ii][jj]);
+	        hNIM_T  [ii] -> Fill(Traw_NIM_T  [ii][jj]);
+	        hNIM_TOT[ii] -> Fill(Traw_NIM_TOT[ii][jj]);
+	        hNIM_L2   -> Fill(ii, Traw_NIM_L  [ii][jj]);
+	        hNIM_T2   -> Fill(ii, Traw_NIM_T  [ii][jj]);
+	        hNIM_TOT2 -> Fill(ii, Traw_NIM_TOT[ii][jj]);
 				}
 			}
 
       for(int IP = 0; IP < IP_max; IP++){
 	      for (int ii = 0; ii < 32; ii++){
 	        for(int jj = 0; jj < hitNmax; jj++){
-	          hTDC_L      [IP][ii] -> Fill(Traw_Kal_L  [IP][ii][jj]);
-	          hTDC_T      [IP][ii] -> Fill(Traw_Kal_T  [IP][ii][jj]);
-	          hTDC_TOT    [IP][ii] -> Fill(Traw_Kal_TOT[IP][ii][jj]);
-	          hTDC_L2[IP]   -> Fill(ii, Traw_Kal_L  [IP][ii][jj]);
-	          hTDC_T2[IP]   -> Fill(ii, Traw_Kal_T  [IP][ii][jj]);
-	          hTDC_TOT2[IP] -> Fill(ii, Traw_Kal_TOT[IP][ii][jj]);
+	          hKAL_L      [IP][ii] -> Fill(Traw_Kal_L  [IP][ii][jj]);
+	          hKAL_T      [IP][ii] -> Fill(Traw_Kal_T  [IP][ii][jj]);
+	          hKAL_TOT    [IP][ii] -> Fill(Traw_Kal_TOT[IP][ii][jj]);
+	          hKAL_L2[IP]   -> Fill(ii, Traw_Kal_L  [IP][ii][jj]);
+	          hKAL_T2[IP]   -> Fill(ii, Traw_Kal_T  [IP][ii][jj]);
+	          hKAL_TOT2[IP] -> Fill(ii, Traw_Kal_TOT[IP][ii][jj]);
 	        }
+	        hTraw_NIM_num    ->Fill(ii, Traw_NIM_num    [0][ii]);
 	        hTraw_Kal_num[IP]->Fill(ii, Traw_Kal_num[IP][0][ii]);
 	      }
 	      hdTS_Kal[IP]  -> Fill(dTS_Kal[IP]  );
@@ -1078,213 +1081,216 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	TCanvas * cLeading = new TCanvas("===== Leading =============", "===== Leading =============", 1, 1);
 	cLeading -> Write();
 	//NIM
-	TCanvas* cTDC_L2_NIM = new TCanvas(Form("cTDC_L2_NIM"), Form("cTDC_L2_NIM"), 1200, 600);
-	cTDC_L2_NIM -> cd(1);
+	TCanvas* cNIM_L2 = new TCanvas(Form("cNIM_L2"), Form("cNIM_L2"), 1200, 600);
+	cNIM_L2 -> cd(1);
 	SetMargins();
-	hTDC_L2_NIM -> Draw("colz");
+	hNIM_L2 -> Draw("colz");
 	gPad -> SetLogz(1);
 	gPad -> Update();
-	cTDC_L2_NIM -> cd(1) -> Modified();
-	cTDC_L2_NIM -> cd(1) -> Update();
-	cTDC_L2_NIM -> Write();
+	cNIM_L2 -> cd(1) -> Modified();
+	cNIM_L2 -> cd(1) -> Update();
+	cNIM_L2 -> Write();
 
-  vector<TF1*> fTDC_L_NIM;
-	fTDC_L_NIM.resize(32);
+  vector<TF1*> fNIM_L;
+	fNIM_L.resize(32);
 	for (int jj = 0; jj < 32; jj++) { 
-    fTDC_L_NIM[jj] = new TF1(Form("fTDC_L_NIM_ch%02d", jj), "[0] + [1] * exp(-[2] * x)", 2e3, 70e3);
-    fTDC_L_NIM[jj] -> SetParameters(2, 5, 4.5e-4);
-		if(jj == 1) hTDC_L_NIM[jj] -> Fit(fTDC_L_NIM[jj], "L", "", 2e3, 70e3);
+    fNIM_L[jj] = new TF1(Form("fNIM_ch%02d", jj), "[0] + [1] * exp(-[2] * x)", 2e3, 70e3);
+    fNIM_L[jj] -> SetParameters(2, 5, 4.5e-4);
+		if(jj == 1) hNIM_L[jj] -> Fit(fNIM_L[jj], "L", "", 2e3, 70e3);
 	}
-	TCanvas* cTDC_L_NIM;
-	cTDC_L_NIM = new TCanvas(Form("cTDC_L_NIM"), Form("c_TDC_L_NIM"), 1200, 600);
-  cTDC_L_NIM -> Divide(8, 4);
+	TCanvas* cNIM_L;
+	cNIM_L = new TCanvas(Form("cNIM_L"), Form("cNIM_L"), 1200, 600);
+  cNIM_L -> Divide(8, 4);
 	for (int jj = 0; jj < 32; jj++) {
-	  cTDC_L_NIM -> cd(jj + 1);
+	  cNIM_L -> cd(jj + 1);
 		SetMargins();
-		hTDC_L_NIM[jj] -> Draw("");
-		fTDC_L_NIM[jj] -> Draw("same");
+		hNIM_L[jj] -> Draw("");
+		fNIM_L[jj] -> Draw("same");
 		gPad -> SetLogy(1);
 		gPad -> Update();
-	  cTDC_L_NIM -> cd(jj + 1) -> Modified();
-	  cTDC_L_NIM -> cd(jj + 1) -> Update();
+	  cNIM_L -> cd(jj + 1) -> Modified();
+	  cNIM_L -> cd(jj + 1) -> Update();
 	}
-	cTDC_L_NIM -> Write();
+	cNIM_L -> Write();
 
 	//Kalliope
-	TCanvas* cTDC_L2 = new TCanvas(Form("cTDC_L2"), Form("cTDC_L2"), 1200, 600);
-	cTDC_L2 -> Divide(col, row);
+	TCanvas* cKAL_L2 = new TCanvas(Form("cKAL_L2"), Form("cKAL_L2"), 1200, 600);
+	cKAL_L2 -> Divide(col, row);
 	for (int ii = 0; ii < IP_max; ii++) {
-		cTDC_L2 -> cd(ii + 1);
+		cKAL_L2 -> cd(ii + 1);
 		SetMargins();
-		hTDC_L2[ii] -> Draw("colz");
+		hKAL_L2[ii] -> Draw("colz");
 		gPad -> SetLogz(1);
 		gPad -> Update();
-		cTDC_L2 -> cd(ii + 1) -> Modified();
-		cTDC_L2 -> cd(ii + 1) -> Update();
+		cKAL_L2 -> cd(ii + 1) -> Modified();
+		cKAL_L2 -> cd(ii + 1) -> Update();
 	}
-	cTDC_L2 -> Write();
-  vector<vector<TF1*>> fTDC_L;
-  fTDC_L.resize(IP_max);
+	cKAL_L2 -> Write();
+  vector<vector<TF1*>> fKAL_L;
+  fKAL_L.resize(IP_max);
   for (int ii = 0; ii < IP_max; ii++){
-		fTDC_L[ii].resize(32);
+		fKAL_L[ii].resize(32);
 		for (int jj = 0; jj < 32; jj++) { 
-      fTDC_L[ii][jj] = new TF1(Form("fTDC_L_%02d_ch%02d", ii, jj), "[0] + [1] * exp(-[2] * x)", 0, 70e3);
-			fTDC_L[ii][jj] -> SetParameters(2, 5, 4.5e-4);
-			//hTDC_L[ii][jj] -> Fit(fTDC_L[ii][jj], "L", "", 0, 70e3);
+      fKAL_L[ii][jj] = new TF1(Form("fKAL_L_%02d_ch%02d", ii, jj), "[0] + [1] * exp(-[2] * x)", 0, 70e3);
+			fKAL_L[ii][jj] -> SetParameters(2, 5, 4.5e-4);
+			//hKAL_L[ii][jj] -> Fit(fKAL_L[ii][jj], "L", "", 0, 70e3);
 		}
   }
-	vector<TCanvas*> cTDC_L;
-	cTDC_L.resize(IP_max);
+	vector<TCanvas*> cKAL_L;
+	cKAL_L.resize(IP_max);
   for (int ii = 0; ii < IP_max; ii++) {
-		cTDC_L[ii] = new TCanvas(Form("cTDC_L_%02d", ii), Form("c_TDC_L_%02d", ii), 1200, 600);
-	  cTDC_L[ii] -> Divide(8, 4);
+		cKAL_L[ii] = new TCanvas(Form("cKAL_L_%02d", ii), Form("cKAL_L_%02d", ii), 1200, 600);
+	  cKAL_L[ii] -> Divide(8, 4);
 		for (int jj = 0; jj < 32; jj++) {
-		  cTDC_L[ii] -> cd(jj + 1);
+		  cKAL_L[ii] -> cd(jj + 1);
 			SetMargins();
-			hTDC_L[ii][jj] -> Draw("");
-			fTDC_L[ii][jj] -> Draw("same");
+			hKAL_L[ii][jj] -> Draw("");
+			fKAL_L[ii][jj] -> Draw("same");
 			gPad -> SetLogy(1);
 			gPad -> Update();
-		  cTDC_L[ii] -> cd(jj + 1) -> Modified();
-		  cTDC_L[ii] -> cd(jj + 1) -> Update();
+		  cKAL_L[ii] -> cd(jj + 1) -> Modified();
+		  cKAL_L[ii] -> cd(jj + 1) -> Update();
 		}
-		cTDC_L[ii] -> Write();
+		cKAL_L[ii] -> Write();
 	}
 
   //==== Trailing ============================================================ 
 	TCanvas * cTrailing = new TCanvas("===== Trailing =============", "===== Trailing =============", 1, 1);
 	cTrailing -> Write();
 	// NIM
-	TCanvas* cTDC_T2_NIM = new TCanvas(Form("cTDC_T2_NIM"), Form("cTDC_T2_NIM"), 1200, 600);
-	cTDC_T2_NIM -> cd(1);
+	TCanvas* cNIM_T2 = new TCanvas(Form("cNIM_T2"), Form("cNIM_T2"), 1200, 600);
+	cNIM_T2 -> cd(1);
 	SetMargins();
-	hTDC_T2_NIM -> Draw("colz");
+	hNIM_T2 -> Draw("colz");
 	gPad -> SetLogz(1);
 	gPad -> Update();
-	cTDC_T2_NIM -> cd(1) -> Modified();
-	cTDC_T2_NIM -> cd(1) -> Update();
-	cTDC_T2_NIM -> Write();
+	cNIM_T2 -> cd(1) -> Modified();
+	cNIM_T2 -> cd(1) -> Update();
+	cNIM_T2 -> Write();
 
-  vector<TF1*> fTDC_T_NIM;
-	fTDC_T_NIM.resize(32);
+  vector<TF1*> fNIM_T;
+	fNIM_T.resize(32);
 	for (int jj = 0; jj < 32; jj++) { 
-    fTDC_T_NIM[jj] = new TF1(Form("fTDC_T_NIM_ch%02d", jj), "[0] + [1] * exp(-[2] * x)", 2e3, 70e3);
-		fTDC_T_NIM[jj] -> SetParameters(2, 5, 4.5e-4);
-		//hTDC_T_NIM[jj] -> Fit(fTDC_T_NIM[jj], "L", "", 2e3, 70e3);
+    fNIM_T[jj] = new TF1(Form("fNIM_T_ch%02d", jj), "[0] + [1] * exp(-[2] * x)", 2e3, 70e3);
+		fNIM_T[jj] -> SetParameters(2, 5, 4.5e-4);
+		//hNIM_T[jj] -> Fit(fNIM_T[jj], "L", "", 2e3, 70e3);
 	}
-	TCanvas* cTDC_T_NIM;
-	cTDC_T_NIM = new TCanvas(Form("cTDC_T_NIM"), Form("cTDC_T_NIM"), 1200, 600);
-  cTDC_T_NIM -> Divide(8, 4);
+	TCanvas* cNIM_T;
+	cNIM_T = new TCanvas(Form("cNIM_T"), Form("cNIM_T"), 1200, 600);
+  cNIM_T -> Divide(8, 4);
 	for (int jj = 0; jj < 32; jj++) {
-	  cTDC_T_NIM -> cd(jj + 1);
+	  cNIM_T -> cd(jj + 1);
 		SetMargins();
-		hTDC_T_NIM[jj] -> Draw("");
-		fTDC_T_NIM[jj] -> Draw("same");
+		hNIM_T[jj] -> Draw("");
+		fNIM_T[jj] -> Draw("same");
 		gPad -> SetLogy(1);
 		gPad -> Update();
-	  cTDC_T_NIM -> cd(jj + 1) -> Modified();
-	  cTDC_T_NIM -> cd(jj + 1) -> Update();
+	  cNIM_T -> cd(jj + 1) -> Modified();
+	  cNIM_T -> cd(jj + 1) -> Update();
 	}
-	cTDC_T_NIM -> Write();
+	cNIM_T -> Write();
 
 	// Kalliope
-	TCanvas* cTDC_T2 = new TCanvas(Form("cTDC_T2"), Form("cTDC_T2"), 1200, 600);
-	cTDC_T2 -> Divide(col, row);
+	TCanvas* cKAL_T2 = new TCanvas(Form("cKAL_T2"), Form("cKAL_T2"), 1200, 600);
+	cKAL_T2 -> Divide(col, row);
 	for (int ii = 0; ii < IP_max; ii++) {
-		cTDC_T2 -> cd(ii + 1);
+		cKAL_T2 -> cd(ii + 1);
 		SetMargins();
-		hTDC_T2[ii] -> Draw("colz");
+		hKAL_T2[ii] -> Draw("colz");
 		gPad -> SetLogz(1);
 		gPad -> Update();
-		cTDC_T2 -> cd(ii + 1) -> Modified();
-		cTDC_T2 -> cd(ii + 1) -> Update();
+		cKAL_T2 -> cd(ii + 1) -> Modified();
+		cKAL_T2 -> cd(ii + 1) -> Update();
 	}
-	cTDC_T2 -> Write();
-  vector<vector<TF1*>> fTDC_T;
-  fTDC_T.resize(IP_max);
+	cKAL_T2 -> Write();
+  vector<vector<TF1*>> fKAL_T;
+  fKAL_T.resize(IP_max);
   for (int ii = 0; ii < IP_max; ii++){
-		fTDC_T[ii].resize(32);
+		fKAL_T[ii].resize(32);
 		for (int jj = 0; jj < 32; jj++) { 
-      fTDC_T[ii][jj] = new TF1(Form("fTDC_T_%02d_ch%02d", ii, jj), "[0] + [1] * exp(-[2] * x)", 0, 70e3);
-			fTDC_T[ii][jj] -> SetParameters(2, 5, 4.5e-4);
-			//hTDC_T[ii][jj] -> Fit(fTDC_T[ii][jj], "L", "", 0, 70e3);
+      fKAL_T[ii][jj] = new TF1(Form("fKAL_T_%02d_ch%02d", ii, jj), "[0] + [1] * exp(-[2] * x)", 0, 70e3);
+			fKAL_T[ii][jj] -> SetParameters(2, 5, 4.5e-4);
+			//hKAL_T[ii][jj] -> Fit(fKAL_T[ii][jj], "L", "", 0, 70e3);
 		}
   }
-	vector<TCanvas*> cTDC_T;
-	cTDC_T.resize(IP_max);
+	vector<TCanvas*> cKAL_T;
+	cKAL_T.resize(IP_max);
   for (int ii = 0; ii < IP_max; ii++) {
-		cTDC_T[ii] = new TCanvas(Form("cTDC_T_%02d", ii), Form("cTDC_L_%02d", ii), 1200, 600);
-	  cTDC_T[ii] -> Divide(8, 4);
+		cKAL_T[ii] = new TCanvas(Form("cKAL_T_%02d", ii), Form("cKAL_T_%02d", ii), 1200, 600);
+	  cKAL_T[ii] -> Divide(8, 4);
 		for (int jj = 0; jj < 32; jj++) {
-		  cTDC_T[ii] -> cd(jj + 1);
+		  cKAL_T[ii] -> cd(jj + 1);
 			SetMargins();
-			hTDC_T[ii][jj] -> Draw("");
-			fTDC_L[ii][jj] -> Draw("same");
+			hKAL_T[ii][jj] -> Draw("");
+			fKAL_T[ii][jj] -> Draw("same");
 			gPad -> SetLogy(1);
 			gPad -> Update();
-		  cTDC_T[ii] -> cd(jj + 1) -> Modified();
-		  cTDC_T[ii] -> cd(jj + 1) -> Update();
+		  cKAL_T[ii] -> cd(jj + 1) -> Modified();
+		  cKAL_T[ii] -> cd(jj + 1) -> Update();
 		}
-		cTDC_T[ii] -> Write();
+		cKAL_T[ii] -> Write();
 	}
 
   //==== TOT ================================================================= 
 	TCanvas * cTOT = new TCanvas("===== TOT =============", "===== TOT =============", 1, 1);
 	cTOT -> Write();
 	// NIM
-	TCanvas* cTDC_TOT2_NIM = new TCanvas(Form("cTDC_TOT2_NIM"), Form("cTDC_TOT2_NIM"), 1200, 600);
-	cTDC_TOT2_NIM -> cd(1);
+	TCanvas* cNIM_TOT2 = new TCanvas(Form("cNIM_TOT2"), Form("cNIM_TOT2"), 1200, 600);
+	cNIM_TOT2 -> cd(1);
 	SetMargins();
-	hTDC_TOT2_NIM -> Draw("colz");
+	hNIM_TOT2 -> Draw("colz");
 	gPad -> SetLogz(1);
 	gPad -> Update();
-	cTDC_TOT2_NIM -> cd(1) -> Modified();
-	cTDC_TOT2_NIM -> cd(1) -> Update();
-	cTDC_TOT2_NIM -> Write();
+	cNIM_TOT2 -> cd(1) -> Modified();
+	cNIM_TOT2 -> cd(1) -> Update();
+	cNIM_TOT2 -> Write();
 
-	TCanvas* cTDC_TOT_NIM;
-	cTDC_TOT_NIM = new TCanvas(Form("cTDC_TOT_NIM"), Form("cTDC_TOT_NIM"), 1200, 600);
-  cTDC_TOT_NIM -> Divide(8, 4);
+	TCanvas* cNIM_TOT;
+	cNIM_TOT = new TCanvas(Form("cNIM_TOT"), Form("cNIM_TOT"), 1200, 600);
+  cNIM_TOT -> Divide(8, 4);
 	for (int jj = 0; jj < 32; jj++) {
-	  cTDC_TOT_NIM -> cd(jj + 1);
+	  cNIM_TOT -> cd(jj + 1);
 		SetMargins();
-		hTDC_TOT_NIM[jj] -> Draw("");
+		hNIM_TOT[jj] -> Draw("");
 		gPad -> SetLogy(1);
 		gPad -> Update();
-	  cTDC_TOT_NIM -> cd(jj + 1) -> Modified();
-	  cTDC_TOT_NIM -> cd(jj + 1) -> Update();
+	  cNIM_TOT -> cd(jj + 1) -> Modified();
+	  cNIM_TOT -> cd(jj + 1) -> Update();
 	}
-	cTDC_TOT_NIM -> Write();
+	cNIM_TOT -> Write();
 
 	// Kalliope
-	TCanvas* cTDC_TOT2 = new TCanvas(Form("cTDC_TOT2"), Form("cTDC_TOT2"), 1200, 600);
-	cTDC_TOT2 -> Divide(col, row);
+	TCanvas* cKAL_TOT2 = new TCanvas(Form("cKAL_TOT2"), Form("cKAL_TOT2"), 1200, 600);
+	cKAL_TOT2 -> Divide(col, row);
 	for (int ii = 0; ii < IP_max; ii++) {
-		cTDC_TOT2 -> cd(ii + 1);
+		cKAL_TOT2 -> cd(ii + 1);
 		SetMargins();
-		hTDC_TOT2[ii] -> Draw("colz");
+		hKAL_TOT2[ii] -> Draw("colz");
 		gPad -> SetLogz(1);
 		gPad -> Update();
-		cTDC_TOT2 -> cd(ii + 1) -> Modified();
-		cTDC_TOT2 -> cd(ii + 1) -> Update();
+		cKAL_TOT2 -> cd(ii + 1) -> Modified();
+		cKAL_TOT2 -> cd(ii + 1) -> Update();
 	}
-	cTDC_TOT2 -> Write();
-	vector<TCanvas*> cTDC_TOT;
-	cTDC_TOT.resize(IP_max);
+	cKAL_TOT2 -> Write();
+	vector<TCanvas*> cKAL_TOT;
+	cKAL_TOT.resize(IP_max);
   for (int ii = 0; ii < IP_max; ii++) {
-		cTDC_TOT[ii] = new TCanvas(Form("cTDC_TOT_%02d", ii), Form("cTDC_TOT_%02d", ii), 1200, 600);
-	  cTDC_TOT[ii] -> Divide(8, 4);
+		cKAL_TOT[ii] = new TCanvas(Form("cKAL_TOT_%02d", ii), Form("cKAL_TOT_%02d", ii), 1200, 600);
+	  cKAL_TOT[ii] -> Divide(8, 4);
 		for (int jj = 0; jj < 32; jj++) {
-		  cTDC_TOT[ii] -> cd(jj + 1);
+		  cKAL_TOT[ii] -> cd(jj + 1);
 			SetMargins();
-			hTDC_TOT[ii][jj] -> Draw("");
+			hKAL_TOT[ii][jj] -> Draw("");
 			gPad -> SetLogy(1);
 			gPad -> Update();
-		  cTDC_TOT[ii] -> cd(jj + 1) -> Modified();
-		  cTDC_TOT[ii] -> cd(jj + 1) -> Update();
+		  cKAL_TOT[ii] -> cd(jj + 1) -> Modified();
+		  cKAL_TOT[ii] -> cd(jj + 1) -> Update();
 		}
-		cTDC_TOT[ii] -> Write();
+		cKAL_TOT[ii] -> Write();
 	}
+
+  //==== TOT ================================================================= 
+	TCanvas* c_
 
 	//================================================================================================== TDC ======
 	
