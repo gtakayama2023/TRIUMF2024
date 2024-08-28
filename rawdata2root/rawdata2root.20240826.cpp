@@ -27,19 +27,19 @@
 
 using namespace std;
 
-void SkipOrStop(int IP_max, double dTS_Kal[12], double dTS_NIM, 
+void SkipOrStop(int IP_max, double dTS_KAL[12], double dTS_NIM, 
 						   double minValue, double maxValue,
-			         bool Skip_Kal[12], bool &Skip_NIM, bool &SKIP_FLAG_new, 
-							 bool Stop_Kal[12], bool &Stop_NIM) 
+			         bool Skip_KAL[12], bool &Skip_NIM, bool &SKIP_FLAG_new, 
+							 bool Stop_KAL[12], bool &Stop_NIM) 
 {
     double tolerance = 0.3e-6;
 		// For Skip
 		SKIP_FLAG_new = false;
     for (int i = 0; i < IP_max; i++) {
-        if (std::fabs(dTS_Kal[i] - maxValue) <= tolerance) {
-            Skip_Kal[i] = false;
+        if (std::fabs(dTS_KAL[i] - maxValue) <= tolerance) {
+            Skip_KAL[i] = false;
         } else {
-            Skip_Kal[i] = true;
+            Skip_KAL[i] = true;
 						SKIP_FLAG_new   = true;
         }
     }
@@ -51,10 +51,10 @@ void SkipOrStop(int IP_max, double dTS_Kal[12], double dTS_NIM,
     }
 		// For Stop
     for (int i = 0; i < IP_max; i++) {
-        if (std::fabs(dTS_Kal[i] - minValue) <= tolerance) {
-            Stop_Kal[i] = false;
+        if (std::fabs(dTS_KAL[i] - minValue) <= tolerance) {
+            Stop_KAL[i] = false;
         } else {
-            Stop_Kal[i] = true;
+            Stop_KAL[i] = true;
         }
     }
     if (std::fabs(dTS_NIM - minValue) <= tolerance) {
@@ -64,10 +64,10 @@ void SkipOrStop(int IP_max, double dTS_Kal[12], double dTS_NIM,
     }
 }
 
-std::pair<double, double> FindMinMax(int IP_max, double dTS_Kal[12], double dTS_NIM) {
+std::pair<double, double> FindMinMax(int IP_max, double dTS_KAL[12], double dTS_NIM) {
     std::vector<double> validValues;
     for (int i = 0; i < IP_max; i++) {
-      validValues.push_back(dTS_Kal[i]);
+      validValues.push_back(dTS_KAL[i]);
     }
     validValues.push_back(dTS_NIM);
     if (validValues.empty()) {
@@ -154,7 +154,7 @@ void SetMargins(Double_t top = 0.10, Double_t right = 0.15, Double_t bottom = 0.
 
 void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const string& path="test"){
   cout << path << endl;
-  if(IP_max==0) IP_max = 12; // 0:Experiment mode, Kalliope x12
+  if(IP_max==0) IP_max = 12; // 0:Experiment mode, KALliope x12
   //======================================
   //===== NIM-TDC (IP=16 (default)) ======
   //======================================
@@ -168,6 +168,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   double TS_NIM_Sync = 0.0;//, dTS_NIM_Sync = 0.0, TS_NIM_Sync_pre = 0.0;
   int Keyword = -1;
   int Traw_NIM_L[32][10] = {}, Traw_NIM_T[32][10] = {}, Traw_NIM_TOT[32][10] = {};
+  int Traw_NIM_L_valid[32] = {}, Traw_NIM_T_valid[32] = {};
 	int Traw_NIM_num[2][32] = {};
   int T_UP = 0, T_DOWN, T_FORWARD = 0, T_BACKWARD = 0;
 
@@ -183,11 +184,11 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   ofstream ofEvtMatch(Form("./txt/EvtMatch_run%d.txt",runN));
   
   int N_event[12] = {};
-  vector<int> N_Sync_Interval(IP_max,0), N_Kal_Last(IP_max,0), N_Kal_LOS(IP_max,0);
-  vector<int> N_Kal_Last2(IP_max,0);
+  vector<int> N_Sync_Interval(IP_max,0), N_KAL_Last(IP_max,0), N_KAL_LOS(IP_max,0);
+  vector<int> N_KAL_Last2(IP_max,0);
 
-  int N_Kal_Total[12] = {}, N_Kal_Sync[12] = {};
-  double TS_Kal_0[12], TS_Kal[12], TS_Kal_calib[12], dTS_Kal[12]={0.}, TS_Kal_pre[12], TS_Kal_Sync[12];
+  int N_KAL_Total[12] = {}, N_KAL_Sync[12] = {};
+  double TS_KAL_0[12], TS_KAL[12], TS_KAL_calib[12], dTS_KAL[12]={0.}, TS_KAL_pre[12], TS_KAL_Sync[12];
   vector<double> TS_diff(IP_max,0.0), dTS_diff(IP_max,0.0);
 
   int time_L = -999, time_T = 999;
@@ -211,9 +212,10 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   //===== Define Variables ======
   //===== Raw Data =====
   // Leading/Trailing Time, TOT : [Kalliope][KEL][ch][Multiplicity]
-  int Traw_Kal_L[12][32][10], Traw_Kal_T[12][32][10], Traw_Kal_TOT[12][32][10];
-  int Traw_Kal_num[12][2][32] = {};       // Malitiplicity of [Kalliope IP][L/Tr][CH]
-  int Traw_Kal_num_total[12][2][32] = {}; // Malitiplicity of [Kalliope IP][L/Tr][CH]
+  int Traw_KAL_L[12][32][10], Traw_KAL_T[12][32][10], Traw_KAL_TOT[12][32][10];
+  int Traw_KAL_L_valid[12][32], Traw_KAL_T_valid[12][32];
+  int Traw_KAL_num[12][2][32] = {};       // Malitiplicity of [Kalliope IP][L/Tr][CH]
+  int Traw_KAL_num_total[12][2][32] = {}; // Malitiplicity of [Kalliope IP][L/Tr][CH]
 
   int N_02event = 0;
   int hitNmax = 10; // Multiplicity Max
@@ -233,7 +235,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   bool Fiber_CH_FLAG[2][2][2][64];
   bool Tracking_FLAG[2]; // only up or down
   
-  int TOT_Noise_NIM = 100, TOT_Noise_Kal[12] = {100};
+  int TOT_Noise_NIM = 200, TOT_Noise_KAL[12] = {200};
   int N_track = 0;
   
   //===== Open Rawdata =====
@@ -295,10 +297,10 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   stat_file << "    <div class=\"container\">\n";
   
   //===== Initialize =====
-  for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_Kal_L[i][j][k]=0;
-  for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_Kal_T[i][j][k]=0;
-  for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_Kal_TOT[i][j][k]=0;
-  for(int i=0;i<12;i++)for(int j=0;j<2;j++) for(int k=0;k<32;k++)Traw_Kal_num[i][j][k]=0;
+  for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_KAL_L[i][j][k]=0;
+  for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_KAL_T[i][j][k]=0;
+  for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_KAL_TOT[i][j][k]=0;
+  for(int i=0;i<12;i++)for(int j=0;j<2;j++) for(int k=0;k<32;k++)Traw_KAL_num[i][j][k]=0;
   
   for(int i=0;i<2;i++)for(int j=0;j<2;j++)for(int k=0;k<2;k++)for(int l=0;l<64;l++)Fiber_L[i][j][k][l]=0;
   for(int i=0;i<2;i++)for(int j=0;j<2;j++)for(int k=0;k<2;k++)for(int l=0;l<64;l++)Fiber_T[i][j][k][l]=0;
@@ -315,11 +317,11 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   tree->Branch("TS_NIM_Sync",  &TS_NIM_Sync,  "TS_NIM_Sync/D");
   tree->Branch("SYNC_NIM_FLAG",&SYNC_NIM_FLAG,"SYNC_NIM_FLAG/I");
   //===== Kalliope =====
-  tree->Branch("TS_Kal",       TS_Kal,        "TS_Kal[12]/D");
-  tree->Branch("TS_Kal_calib", TS_Kal_calib,  "TS_Kal_calib[12]/D");
-  tree->Branch("dTS_Kal",      dTS_Kal,       "dTS_Kal[12]/D");
-  tree->Branch("TS_Kal_pre",   TS_Kal_pre,    "TS_Kal_pre[12]/D");
-  tree->Branch("TS_Kal_Sync",  TS_Kal_Sync,   "TS_Kal_Sync[12]/D");
+  tree->Branch("TS_KAL",       TS_KAL,        "TS_KAL[12]/D");
+  tree->Branch("TS_KAL_calib", TS_KAL_calib,  "TS_KAL_calib[12]/D");
+  tree->Branch("dTS_KAL",      dTS_KAL,       "dTS_KAL[12]/D");
+  tree->Branch("TS_KAL_pre",   TS_KAL_pre,    "TS_KAL_pre[12]/D");
+  tree->Branch("TS_KAL_Sync",  TS_KAL_Sync,   "TS_KAL_Sync[12]/D");
   
   tree->Branch("TS_diff",      &TS_diff);
   tree->Branch("dTS_diff",     &dTS_diff);
@@ -329,10 +331,15 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   tree->Branch("Traw_NIM_T",   Traw_NIM_T,    "Traw_NIM_T  [32][10]/I");
   tree->Branch("Traw_NIM_TOT", Traw_NIM_TOT,  "Traw_NIM_TOT[32][10]/I");  
   tree->Branch("Traw_NIM_num", Traw_NIM_num,  "Traw_NIM_num [2][32]/I");  
-  tree->Branch("Traw_Kal_L",   Traw_Kal_L,    "Traw_Kal_L  [12][32][10]/I");
-  tree->Branch("Traw_Kal_T",   Traw_Kal_T,    "Traw_Kal_T  [12][32][10]/I");
-  tree->Branch("Traw_Kal_TOT", Traw_Kal_TOT,  "Traw_Kal_TOT[12][32][10]/I");
-  tree->Branch("Traw_Kal_num", Traw_Kal_num,  "Traw_Kal_num[12][2][32]/I");
+  tree->Branch("Traw_KAL_L",   Traw_KAL_L,    "Traw_KAL_L  [12][32][10]/I");
+  tree->Branch("Traw_KAL_T",   Traw_KAL_T,    "Traw_KAL_T  [12][32][10]/I");
+  tree->Branch("Traw_KAL_TOT", Traw_KAL_TOT,  "Traw_KAL_TOT[12][32][10]/I");
+  tree->Branch("Traw_KAL_num", Traw_KAL_num,  "Traw_KAL_num[12][2][32]/I");
+
+  tree->Branch("Traw_NIM_L_valid", Traw_NIM_L_valid, "Traw_NIM_L_valid  [32][10]/I");
+  tree->Branch("Traw_NIM_T_valid", Traw_NIM_T_valid, "Traw_NIM_T_valid  [32][10]/I");
+  tree->Branch("Traw_KAL_L_valid", Traw_KAL_L_valid, "Traw_KAL_L_valid  [32][10]/I");
+  tree->Branch("Traw_KAL_T_valid", Traw_KAL_T_valid, "Traw_KAL_T_valid  [32][10]/I");
 
   //====== T_Fiber ======
   tree->Branch("Fiber_L",      Fiber_L,       "Fiber_L[2][2][2][64]/I"); //[x/y][up/down][in/out][CH]
@@ -342,33 +349,33 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   
   //===== Define Histgrams =====
   //===== Histgrams for Monitoring Data =====
-  TH2F *hMonitor_TS_Kal;
-  hMonitor_TS_Kal   = new TH2F("hMonitor_TS_Kal",   "All #it{TS}_{Kal}; Kalliope IP; #it{TS}_{Kal} [s]",12, 0, 12, 1000, 0, 60);
+  TH2F *hMonitor_TS_KAL;
+  hMonitor_TS_KAL   = new TH2F("hMonitor_TS_KAL",   "All #it{TS}_{KAL}; Kalliope IP; #it{TS}_{KAL} [s]",12, 0, 12, 1000, 0, 60);
 
   TH2F *hMonitor_dTS_diff;
-  hMonitor_dTS_diff = new TH2F("hMonitor_dTS_diff", "All #it{TS}_{Kal} - #it{TS}_{NIM}; Kalliope IP; #it{TS}_{Kal} - #it{TS}_{NIM}", 12, 0, 12, 1000, -1e-6, 1e-6);
+  hMonitor_dTS_diff = new TH2F("hMonitor_dTS_diff", "All #it{TS}_{KAL} - #it{TS}_{NIM}; Kalliope IP; #it{TS}_{KAL} - #it{TS}_{NIM}", 12, 0, 12, 1000, -1e-6, 1e-6);
   
   TH2F *hMonitor_TS_Sync;
   hMonitor_TS_Sync = new TH2F("hMonitor_TS_Sync",   "hMonitor_TS_Sync; Kalliope IP; T_diff_2D",12,0,12,1000,0,    60   );
   
   //===== Histgram for TimeStamp =====
 	// Time stamp of each Kalliope module vs NIM_TDC's
-  vector<TH2F*> hTS_Kal2;
-  hTS_Kal2.resize(IP_max);
+  vector<TH2F*> hTS_KAL2;
+  hTS_KAL2.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hTS_Kal2[i] = new TH2F(Form("hTS_Kal2_%d", i), Form("#it{TS}_{NIM} vs #it{TS}_{Kal(%02d)]}; #it{TS}_{NIM} [s]; #it{TS}_{Kal} [s]", i), 1000, 0, 4000, 1000, 0, 4000);
+    hTS_KAL2[i] = new TH2F(Form("hTS_KAL2_%d", i), Form("#it{TS}_{NIM} vs #it{TS}_{KAL(%02d)]}; #it{TS}_{NIM} [s]; #it{TS}_{KAL} [s]", i), 1000, 0, 4000, 1000, 0, 4000);
   }
 	// 
-  vector<TH1F*> hdTS_Kal;
-  hdTS_Kal.resize(IP_max);
+  vector<TH1F*> hdTS_KAL;
+  hdTS_KAL.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hdTS_Kal[i] = new TH1F(Form("hdTS_Kal_%d",i), Form("#it{TS}_{Kal}(IP = %02d) #it{interval}; #it{TS}_{Kal} #it{interval} [s]; (#it{counts})", i), 1000, 0, 1e-2);
+    hdTS_KAL[i] = new TH1F(Form("hdTS_KAL_%d",i), Form("#it{TS}_{KAL}(IP = %02d) #it{interval}; #it{TS}_{KAL} #it{interval} [s]; (#it{counts})", i), 1000, 0, 1e-2);
   }
   // 
   vector<TH2F*> hTS_diff;
   hTS_diff.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hTS_diff[i] = new TH2F(Form("hTS_diff_%d",i), Form("#it{TS}_{Kal}(IP = %02d) - #it{TS}_{NIM} ; #it{TS}_{NIM} [s]; #it{TS}_{Kal} - #it{TS}_{NIM} [s]", i), 1000, 0, 20, 1000, -4e-5, 4e-5);
+    hTS_diff[i] = new TH2F(Form("hTS_diff_%d",i), Form("#it{TS}_{KAL}(IP = %02d) - #it{TS}_{NIM} ; #it{TS}_{NIM} [s]; #it{TS}_{KAL} - #it{TS}_{NIM} [s]", i), 1000, 0, 20, 1000, -4e-5, 4e-5);
   }
   //
   vector<TH1F*> hdTS_diff;
@@ -380,7 +387,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   vector<TH2F*> hdTS_calib;
   hdTS_calib.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hdTS_calib[i] = new TH2F(Form("hdTS_calib_%d",i), Form("#it{TS}_{Kal_calib}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} [s]; #it{TS}_{Kal_calib}(%d) - TS_{NIM} [s]",i, i), 1000, 0, 10, 1000, -1e-6, 1e-6);
+    hdTS_calib[i] = new TH2F(Form("hdTS_calib_%d",i), Form("#it{TS}_{KAL_calib}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} [s]; #it{TS}_{KAL_calib}(%d) - TS_{NIM} [s]",i, i), 1000, 0, 10, 1000, -1e-6, 1e-6);
   }
 
   //===== Histgram for Rawdata =====
@@ -432,14 +439,14 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   vector<TH1F*> hNIM_TOT;
 	hNIM_TOT.resize(32);
 	for (int jj=0; jj<32; jj++) {
-    hNIM_TOT[jj] = new TH1F(Form("hTDC_TOT_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TOT}; #it{TOT} [ns]; #it{counts}", jj), 1e3, -1e1, 1e3);
+    hNIM_TOT[jj] = new TH1F(Form("hNIM_TOT_ch%d", jj), Form("NIM_TDC ch%02d | #it{TOT}; #it{TOT} [ns]; #it{counts}", jj), 1e3, -1e1, 1e3);
 	}
   vector<vector<TH1F*>> hKAL_TOT;
   hKAL_TOT.resize(IP_max);
   for (int i=0;i<IP_max;i++){
 		hKAL_TOT[i].resize(32);
 		for (int jj=0; jj<32; jj++) {
-      hKAL_TOT[i][jj] = new TH1F(Form("hTDC_TOT_%d_ch%d", i, jj), Form("Kalliope(%02d) ch%02d | #it{TOT}; #it{TOT} [ns]; #it{counts}", i, jj), 1e3, -1e1, 1e3);
+      hKAL_TOT[i][jj] = new TH1F(Form("hKAL_TOT_%d_ch%d", i, jj), Form("Kalliope(%02d) ch%02d | #it{TOT}; #it{TOT} [ns]; #it{counts}", i, jj), 1e3, -1e1, 1e3);
 		}
   }
   TH2F* hNIM_TOT2 = new TH2F(Form("hNIM_TOT2"), Form("NIM_TDC | #it{TOT}; #it{TDC} ch; #it{TOT} [ns]"), 32, 0, 32, 1e3, -1e1, 1e3);
@@ -450,13 +457,20 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   }
 
 	// num
-  TH2F* hTraw_NIM_num;
-  hTraw_NIM_num = new TH2F(Form("hTraw_NIM_num_%d",i),Form("NIM_TDC | #it{Multiplicity}; #it{TDC} ch; Multiplicity"), 32, 0, 32, hitNmax, 0, hitNmax);
-  vector<TH2F*> hTraw_Kal_num;
-  hTraw_Kal_num.resize(IP_max);
+  TH2F* hNIM_Multi;
+  hNIM_Multi = new TH2F(Form("hNIM_Multi"),Form("NIM_TDC | #it{Multiplicity}; #it{TDC} ch; Multiplicity"), 32, 0, 32, hitNmax, 0, hitNmax);
+  vector<TH2F*> hKAL_Multi;
+  hKAL_Multi.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hTraw_Kal_num[i] = new TH2F(Form("hTraw_Kal_num_%d",i),Form("Kalliope(%02d) | #it{Multiplicity}; #it{TDC} ch; Multiplicity",i), 32, 0, 32, hitNmax, 0, hitNmax);
+    hKAL_Multi[i] = new TH2F(Form("hKAL_Multi_%d",i),Form("Kalliope(%02d) | #it{Multiplicity}; #it{TDC} ch; Multiplicity",i), 32, 0, 32, hitNmax, 0, hitNmax);
   }
+
+	// KAL - NIM_TDC
+  vector<TH2F*> hKAL_NIM2;
+	hKAL_NIM2.resize(IP_max);
+	for (int ii = 0; ii < IP_max; ii++) {
+		hKAL_NIM2[ii] = new TH2F(Form("hKAL_NIM_%02d", ii), Form("Kalliope(%02d) | #it{TDC}_{KAL} - #it{TDC}_{NIM}; ch; #it{TDC}_{KAL} - #it{TDC}_{NIM}", ii), 32, 0, 32, 1e3, -1e4, 1e4);
+	}
 
   //====== Histgram for Fiber ======
 #ifdef TRACKING_ON
@@ -521,18 +535,18 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   cout << Form("rawdata_NIM-TDC filesize : ") << fsize << endl;
 
 	bool Skip_NIM = false, Stop_NIM = false;
-	bool Skip_Kal[12] = {false}, Stop_Kal[12] = {false};
+	bool Skip_KAL[12] = {false}, Stop_KAL[12] = {false};
 	bool SKIP_FLAG_new = false;
 	double SkipN = 0;
 
   //Start Reaing All Rawdata =====
   while(WHOLE_FLAG){
-		auto [minValue, maxValue] = FindMinMax(IP_max, dTS_Kal, dTS_NIM);
+		auto [minValue, maxValue] = FindMinMax(IP_max, dTS_KAL, dTS_NIM);
 		SkipOrStop( 
-						    IP_max, dTS_Kal, dTS_NIM, 
+						    IP_max, dTS_KAL, dTS_NIM, 
 						    minValue, maxValue, 
-							  Skip_Kal, Skip_NIM, SKIP_FLAG_new,
-							  Stop_Kal, Stop_NIM                 
+							  Skip_KAL, Skip_NIM, SKIP_FLAG_new,
+							  Stop_KAL, Stop_NIM                 
 							);
 
     if(fNIM){
@@ -550,6 +564,8 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 					for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_NIM_T  [j][k]= -2e4;
 					for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_NIM_TOT[j][k]= -1e4;
 					for(int j=0;j<2;j++) for(int k=0;k<32;k++)Traw_NIM_num[j][k]= 0;
+					for(int j=0;j<32;j++)Traw_NIM_L_valid[j] = -1e4;
+					for(int j=0;j<32;j++)Traw_NIM_T_valid[j] = -2e4;
 
       	  //===== Initialize Readfile for the next event =====
       	  if(N_NIM_event == 0){
@@ -612,12 +628,13 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 					if (Traw_NIM_num[1][ch] < hitNmax) {
 						Traw_NIM_T[ch][Traw_NIM_num[1][ch]] = time_T;
       	    Traw_NIM_TOT[ch][Traw_NIM_num[1][ch]] = Traw_NIM_T[ch][Traw_NIM_num[1][ch]] - Traw_NIM_L[ch][Traw_NIM_num[1][ch]];
-						Traw_NIM_num[1][ch]++;
 					}
-      	  if(Traw_NIM_TOT[ch][Traw_NIM_num[1][ch]] > TOT_Noise_NIM){
-      	    //Traw_NIM_L[ch] = time_L;
-      	    //Traw_NIM_T[ch] = time_T;
+      	  if(Traw_NIM_TOT[ch][Traw_NIM_num[1][ch]] > 0 && Traw_NIM_TOT[ch][Traw_NIM_num[1][ch]] < TOT_Noise_NIM){
+      	    Traw_NIM_L_valid[ch] = time_L;
+      	    Traw_NIM_T_valid[ch] = time_T;
+						//cout << "NIM: " << ch << ", " << Traw_NIM_L_valid[ch] << endl;
       	  }
+					Traw_NIM_num[1][ch]++;
       	}
       
       	if(data == 0xff550000){ // Copper Trailer
@@ -664,10 +681,12 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	        if(IP==0){
 	          ch = -999;
 	          N_02event = 0;
-	          for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_Kal_L[i][j][k]=-1e4;
-	          for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_Kal_T[i][j][k]=-2e4;
-	          for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_Kal_TOT[i][j][k]=-1e4;
-	          for(int i=0;i<12;i++)for(int j=0;j<2;j++) for(int k=0;k<32;k++)Traw_Kal_num[i][j][k]=0;
+	          for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_KAL_L[i][j][k]=-1e4;
+	          for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_KAL_T[i][j][k]=-2e4;
+	          for(int i=0;i<12;i++)for(int j=0;j<32;j++)Traw_KAL_L_valid[i][j]=-1e4;
+	          for(int i=0;i<12;i++)for(int j=0;j<32;j++)Traw_KAL_T_valid[i][j]=-2e4;
+	          for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_KAL_TOT[i][j][k]=-1e4;
+	          for(int i=0;i<12;i++)for(int j=0;j<2;j++) for(int k=0;k<32;k++)Traw_KAL_num[i][j][k]=0;
 	          for(int i=0;i<12;i++)SYNC_FLAG[i] = false;
 	          //===== Reline up =====
 	          for(int i=0;i<2;i++){        // x or y
@@ -689,25 +708,25 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 
 	        //===== Read and calculate TimeStamp =====
 	        if(N_event[IP] == 0){
-	          TS_Kal_0[IP] = GetNETtime(rawdata[IP], data);
-	          TS_Kal[IP]  = 0.0;
-	          dTS_Kal[IP] = 0.0;
-	          TS_Kal_pre[IP] = 0.0;
+	          TS_KAL_0[IP] = GetNETtime(rawdata[IP], data);
+	          TS_KAL[IP]  = 0.0;
+	          dTS_KAL[IP] = 0.0;
+	          TS_KAL_pre[IP] = 0.0;
 	          TS_diff[IP] = 0.0;
 	        }
 	        else{
-	          TS_Kal[IP]  = GetNETtime(rawdata[IP], data) - TS_Kal_0[IP];
-	          dTS_Kal[IP] = TS_Kal[IP] - TS_Kal_pre[IP];
+	          TS_KAL[IP]  = GetNETtime(rawdata[IP], data) - TS_KAL_0[IP];
+	          dTS_KAL[IP] = TS_KAL[IP] - TS_KAL_pre[IP];
 	          if(fNIM){
-	            TS_diff[IP]    = TS_Kal[IP]  - TS_NIM;
-	            dTS_diff[IP]   = dTS_Kal[IP] - dTS_NIM;
+	            TS_diff[IP]    = TS_KAL[IP]  - TS_NIM;
+	            dTS_diff[IP]   = dTS_KAL[IP] - dTS_NIM;
 	          }
 	          else{
-	            TS_diff[IP]    = TS_Kal[IP]  - TS_Kal[0];
-	            dTS_diff[IP]   = dTS_Kal[IP] - dTS_Kal[0];
+	            TS_diff[IP]    = TS_KAL[IP]  - TS_KAL[0];
+	            dTS_diff[IP]   = dTS_KAL[IP] - dTS_KAL[0];
 	          }
-						TS_Kal_calib[IP] = TS_Kal[IP]  - TS_diff[IP];
-	          TS_Kal_pre[IP]   = TS_Kal[IP];
+						TS_KAL_calib[IP] = TS_KAL[IP]  - TS_diff[IP];
+	          TS_KAL_pre[IP]   = TS_KAL[IP];
 	        }
 
 	        //===== Increment N_event ======
@@ -715,10 +734,10 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	        N_Sync_Interval[IP]++;
 	        
 	        //====== Check Sync Trigger =====
-	        if(dTS_Kal[IP] < DoublePulseWindow){
-	          N_Kal_Sync[IP]++;
+	        if(dTS_KAL[IP] < DoublePulseWindow){
+	          N_KAL_Sync[IP]++;
 	          SYNC_FLAG[IP] = true;
-	          TS_Kal_Sync[IP] = TS_Kal[IP];
+	          TS_KAL_Sync[IP] = TS_KAL[IP];
 
 	          if(IP==IP_max-1){
 	            auto N_Sync_IntervalMax = max_element(N_Sync_Interval.begin(), N_Sync_Interval.end());
@@ -728,12 +747,12 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	      } // End of 5c Event
 
 	      if(Header == 1){ // Trigger (0x01 event)
-	        N_Kal_Last[IP] = data & 0x00ffffff;
+	        N_KAL_Last[IP] = data & 0x00ffffff;
 	      }
 	      
 	      if(data == 0xffaa0000){
 	        int count = ReadNext32bit(rawdata[IP]);
-	        N_Kal_Last2[IP] = (count>>8) & 0x00ffffff;
+	        N_KAL_Last2[IP] = (count>>8) & 0x00ffffff;
 	      }
 
 	      //===== Get Leading/Trailing edge =====
@@ -745,10 +764,10 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	          ch = (data >> 16) & 0x000000ff;
 	          time_L = data & 0x0000ffff;
 	          time_L += pow(2,16) * N_02event;
-	          if (Traw_Kal_num[IP][0][ch] < hitNmax){
-	            Traw_Kal_L        [IP][ch][Traw_Kal_num[IP][0][ch]] = time_L;
-	            Traw_Kal_num      [IP][0][ch]++;
-	            Traw_Kal_num_total[IP][0][ch]++;
+	          if (Traw_KAL_num[IP][0][ch] < hitNmax){
+	            Traw_KAL_L        [IP][ch][Traw_KAL_num[IP][0][ch]] = time_L;
+	            Traw_KAL_num      [IP][0][ch]++;
+	            Traw_KAL_num_total[IP][0][ch]++;
 	          }
 	        }
 	        if (Header == 4){ // Trailing Edge (0x04 event)
@@ -756,11 +775,14 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	          time_T = data & 0x0000ffff;
 	          time_T += pow(2,16) * N_02event;
 	          
-	          if (Traw_Kal_num[IP][1][ch] < hitNmax){
-	            Traw_Kal_T    [IP][ch][Traw_Kal_num[IP][1][ch]] = time_T;
-	            Traw_Kal_TOT  [IP][ch][Traw_Kal_num[IP][1][ch]] = Traw_Kal_T[IP][ch][Traw_Kal_num[IP][1][ch]] - Traw_Kal_L[IP][ch][Traw_Kal_num[IP][1][ch]];
+	          if (Traw_KAL_num[IP][1][ch] < hitNmax){
+	            Traw_KAL_T    [IP][ch][Traw_KAL_num[IP][1][ch]] = time_T;
+	            Traw_KAL_TOT  [IP][ch][Traw_KAL_num[IP][1][ch]] = Traw_KAL_T[IP][ch][Traw_KAL_num[IP][1][ch]] - Traw_KAL_L[IP][ch][Traw_KAL_num[IP][1][ch]];
 	            
-	            if (Traw_Kal_TOT[IP][ch][Traw_Kal_num[IP][1][ch]] > TOT_Noise_Kal[IP]){
+	            if (Traw_KAL_TOT[IP][ch][Traw_KAL_num[IP][1][ch]] > 0 && Traw_KAL_TOT[IP][ch][Traw_KAL_num[IP][1][ch]] > TOT_Noise_KAL[IP]){
+								Traw_KAL_L_valid[IP][ch] = time_L;
+								Traw_KAL_T_valid[IP][ch] = time_T;
+								//cout << "KAL: " << ch << ", " << Traw_KAL_L_valid[IP][ch] << endl;
 	      	      int fiber_ch = ch + ch_offset*32;
 	      	      AssignFiber(fiber_ch, ud, oi);
 	      	      Fiber_num    [xy][ud][oi]++;
@@ -768,18 +790,18 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	      	      Fiber_T      [xy][ud][oi][fiber_ch] = time_T;
 	      	      Fiber_CH_FLAG[xy][ud][oi][fiber_ch] = true;
 	            }
-	            Traw_Kal_num      [IP][1][ch]++;
-	            Traw_Kal_num_total[IP][1][ch]++;
+	            Traw_KAL_num      [IP][1][ch]++;
+	            Traw_KAL_num_total[IP][1][ch]++;
 	          }
 	        }
 	        if(data == 0xff550000){ // Copper Trailer
 	          SAME_EVENT_FLAG = false;
 	          LOS_FLAG[IP] = CheckLOS(rawdata[IP]);
 	          if(LOS_FLAG[IP]){
-	            N_Kal_LOS[IP]++;
+	            N_KAL_LOS[IP]++;
 	          }
 					  bool breakOK = true;
-      	    if(Skip_Kal[IP]) breakOK = false; Skip_Kal[IP] = false;
+      	    if(Skip_KAL[IP]) breakOK = false; Skip_KAL[IP] = false;
 					  if(breakOK) break;
 	        }
 	      }
@@ -819,11 +841,11 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 
 		FILL_FLAG &= WHOLE_FLAG;
 
-		auto [minValue1, maxValue1] = FindMinMax(IP_max, dTS_Kal, dTS_NIM);
-		SkipOrStop(IP_max, dTS_Kal, dTS_NIM, 
+		auto [minValue1, maxValue1] = FindMinMax(IP_max, dTS_KAL, dTS_NIM);
+		SkipOrStop(IP_max, dTS_KAL, dTS_NIM, 
 						   minValue1, maxValue1, 
-							 Skip_Kal, Skip_NIM, SKIP_FLAG_new,
-							 Stop_Kal, Stop_NIM);
+							 Skip_KAL, Skip_NIM, SKIP_FLAG_new,
+							 Stop_KAL, Stop_NIM);
 		if (N_event[0] == 2) {
 			std::string title = Form("Data path: %s | runN: %04d", path.c_str(), runN);
 		  cout << endl;
@@ -833,7 +855,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       cout << "--------------------------------------------------------------------------------" << endl;
 			cout << Form("%21s       ||%18s        |","Number of Events", "TS interval [us]") << endl;
 			cout << Form("------------------------------------------------------- |") << endl;
-		  cout << Form("%7s | %7s | %7s || %6s | %6s | %6s |", "NIM", "Kal0", "Kal1", "NIM", "Kal[0]", "Kal[1]") << endl;
+		  cout << Form("%7s | %7s | %7s || %6s | %6s | %6s |", "NIM", "KAL0", "KAL1", "NIM", "KAL[0]", "KAL[1]") << endl;
 			cout << Form("------------------------------------------------------- |") << endl;
       
 			// Statistics file
@@ -843,18 +865,18 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       stat_file << "            <tr><th colspan=\"3\">Number of Events</th><th colspan=\"3\">TS Interval [us]</th></tr>\n";
       stat_file << "            <tr>\n";
       stat_file << "                <td>NIM</td>\n";
-      stat_file << "                <td>Kal0</td>\n";
-      stat_file << "                <td>Kal1</td>\n";
+      stat_file << "                <td>KAL0</td>\n";
+      stat_file << "                <td>KAL1</td>\n";
       stat_file << "                <td>NIM</td>\n";
-      stat_file << "                <td>Kal[0]</td>\n";
-      stat_file << "                <td>Kal[1]</td>\n";
+      stat_file << "                <td>KAL[0]</td>\n";
+      stat_file << "                <td>KAL[1]</td>\n";
       stat_file << "            </tr>\n";
 		}
 		//cout << TS_NIM << endl;
 
     if (FILL_FLAG && SKIP_FLAG_new){
 		  cout << Form("%7d | %7d | %7d || %6.2f | %6.2f | %6.2f |",
-						        N_NIM_event,N_event[0],N_event[1], 1e6*dTS_NIM, 1e6*dTS_Kal[0], 1e6*dTS_Kal[1])     
+						        N_NIM_event,N_event[0],N_event[1], 1e6*dTS_NIM, 1e6*dTS_KAL[0], 1e6*dTS_KAL[1])     
 					 << endl;
 
 			SkipN ++;
@@ -865,8 +887,8 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       stat_file << "                <td>" << N_event[0] << "</td>\n";
       stat_file << "                <td>" << N_event[1] << "</td>\n";
       stat_file << "                <td>" << Form("%6.2f",1e6*dTS_NIM   ) << "</td>\n";
-      stat_file << "                <td>" << Form("%6.2f",1e6*dTS_Kal[0]) << "</td>\n";
-      stat_file << "                <td>" << Form("%6.2f",1e6*dTS_Kal[1]) << "</td>\n";
+      stat_file << "                <td>" << Form("%6.2f",1e6*dTS_KAL[0]) << "</td>\n";
+      stat_file << "                <td>" << Form("%6.2f",1e6*dTS_KAL[1]) << "</td>\n";
 		}
 
 	  //===== Filling data ==========================================================================================
@@ -874,38 +896,40 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 
 		  for (int ii = 0; ii < 32; ii++) {
 				for (int jj = 0; jj < hitNmax; jj++) {
-	        hNIM_L  [ii] -> Fill(Traw_NIM_L  [ii][jj]);
-	        hNIM_T  [ii] -> Fill(Traw_NIM_T  [ii][jj]);
-	        hNIM_TOT[ii] -> Fill(Traw_NIM_TOT[ii][jj]);
+	        hNIM_L  [ii] ->  Fill(Traw_NIM_L  [ii][jj]);
+	        hNIM_T  [ii] ->  Fill(Traw_NIM_T  [ii][jj]);
+	        hNIM_TOT[ii] ->  Fill(Traw_NIM_TOT[ii][jj]);
 	        hNIM_L2   -> Fill(ii, Traw_NIM_L  [ii][jj]);
 	        hNIM_T2   -> Fill(ii, Traw_NIM_T  [ii][jj]);
 	        hNIM_TOT2 -> Fill(ii, Traw_NIM_TOT[ii][jj]);
+	        hNIM_Multi-> Fill(ii, Traw_NIM_num [0][ii]);
 				}
 			}
 
       for(int IP = 0; IP < IP_max; IP++){
 	      for (int ii = 0; ii < 32; ii++){
 	        for(int jj = 0; jj < hitNmax; jj++){
-	          hKAL_L      [IP][ii] -> Fill(Traw_Kal_L  [IP][ii][jj]);
-	          hKAL_T      [IP][ii] -> Fill(Traw_Kal_T  [IP][ii][jj]);
-	          hKAL_TOT    [IP][ii] -> Fill(Traw_Kal_TOT[IP][ii][jj]);
-	          hKAL_L2[IP]   -> Fill(ii, Traw_Kal_L  [IP][ii][jj]);
-	          hKAL_T2[IP]   -> Fill(ii, Traw_Kal_T  [IP][ii][jj]);
-	          hKAL_TOT2[IP] -> Fill(ii, Traw_Kal_TOT[IP][ii][jj]);
+	          hKAL_L      [IP][ii] -> Fill(Traw_KAL_L  [IP][ii][jj]);
+	          hKAL_T      [IP][ii] -> Fill(Traw_KAL_T  [IP][ii][jj]);
+	          hKAL_TOT    [IP][ii] -> Fill(Traw_KAL_TOT[IP][ii][jj]);
+	          hKAL_L2[IP]   -> Fill(ii, Traw_KAL_L  [IP][ii][jj]);
+	          hKAL_T2[IP]   -> Fill(ii, Traw_KAL_T  [IP][ii][jj]);
+	          hKAL_TOT2[IP] -> Fill(ii, Traw_KAL_TOT[IP][ii][jj]);
 	        }
-	        hTraw_NIM_num    ->Fill(ii, Traw_NIM_num    [0][ii]);
-	        hTraw_Kal_num[IP]->Fill(ii, Traw_Kal_num[IP][0][ii]);
+	        hKAL_Multi[IP]-> Fill(ii, Traw_KAL_num[IP][0][ii]);
+				  if (Traw_KAL_L_valid[IP][ii] > 0 && Traw_NIM_L_valid[1] > 0) hKAL_NIM2[IP] -> Fill(ii, Traw_KAL_L_valid[IP][ii] - Traw_NIM_L_valid[1]);
+					//if (Traw_KAL_L_valid[IP][ii] > 0 && Traw_NIM_L_valid[1] > 0)cout << Traw_KAL_L_valid[IP][ii] << ", " << Traw_NIM_L_valid[1] << endl;
 	      }
-	      hdTS_Kal[IP]  -> Fill(dTS_Kal[IP]  );
+	      hdTS_KAL[IP]  -> Fill(dTS_KAL[IP]  );
 	      hdTS_diff[IP] -> Fill(dTS_diff[IP] );
-	      hTS_Kal2[IP]                       -> Fill(TS_NIM,    TS_Kal[IP]                   );
-	      hMonitor_TS_Kal                    -> Fill(IP,        TS_Kal[IP]                   );
+	      hTS_KAL2[IP]                       -> Fill(TS_NIM,    TS_KAL[IP]                   );
+	      hMonitor_TS_KAL                    -> Fill(IP,        TS_KAL[IP]                   );
 	      if(fNIM) hTS_diff[IP]              -> Fill(TS_NIM,    TS_diff[IP]                  );
-	      else hTS_diff[IP]                  -> Fill(TS_Kal[0], TS_diff[IP]                  );
-	      if(fNIM) hdTS_calib[IP]            -> Fill(TS_NIM,    TS_Kal_calib[IP] - TS_NIM    );
-				else hdTS_calib[IP]                -> Fill(TS_Kal[0], TS_Kal_calib[IP] - TS_Kal[0] );
+	      else hTS_diff[IP]                  -> Fill(TS_KAL[0], TS_diff[IP]                  );
+	      if(fNIM) hdTS_calib[IP]            -> Fill(TS_NIM,    TS_KAL_calib[IP] - TS_NIM    );
+				else hdTS_calib[IP]                -> Fill(TS_KAL[0], TS_KAL_calib[IP] - TS_KAL[0] );
 	      hMonitor_dTS_diff                  -> Fill(IP,        dTS_diff[IP]                 );
-	      if(SYNC_FLAG[IP]) hMonitor_TS_Sync -> Fill(IP,        TS_Kal_Sync[IP]              );
+	      if(SYNC_FLAG[IP]) hMonitor_TS_Sync -> Fill(IP,        TS_KAL_Sync[IP]              );
       }
 
       //====== Tracking ======
@@ -1050,27 +1074,27 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	c_dTS_calib -> Write();
 
 	// dTS expo fitting
-  vector<TF1*> fdTS_Kal;
-  fdTS_Kal.resize(IP_max);
+  vector<TF1*> fdTS_KAL;
+  fdTS_KAL.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    fdTS_Kal[i] = new TF1(Form("fdTS_Kal_%d",i), "[0] + [1] * exp(-[2] * x)", 0, 1e-2);
+    fdTS_KAL[i] = new TF1(Form("fdTS_KAL_%d",i), "[0] + [1] * exp(-[2] * x)", 0, 1e-2);
   }
 
-	TCanvas * c_dTS_Kal = new TCanvas("c_dTS_Kal", "c_dTS_Kal", 1200, 600);
-	c_dTS_Kal -> Divide(col, row);
+	TCanvas * c_dTS_KAL = new TCanvas("c_dTS_KAL", "c_dTS_KAL", 1200, 600);
+	c_dTS_KAL -> Divide(col, row);
 
 	for (int ii = 0; ii < IP_max; ii++) {
-		c_dTS_Kal    -> cd(ii + 1);
+		c_dTS_KAL    -> cd(ii + 1);
 		SetMargins();
-		hdTS_Kal[ii] -> Fit(fdTS_Kal[ii], "L", "", 0, 100e-6);
-		hdTS_Kal[ii] -> Draw();
+		hdTS_KAL[ii] -> Fit(fdTS_KAL[ii], "L", "", 0, 100e-6);
+		hdTS_KAL[ii] -> Draw();
 		gPad -> SetLogy(1);
 		gPad -> Update();
-		c_dTS_Kal -> cd(ii + 1) -> Modified();
-		c_dTS_Kal -> cd(ii + 1) -> Update();
+		c_dTS_KAL -> cd(ii + 1) -> Modified();
+		c_dTS_KAL -> cd(ii + 1) -> Update();
 	}
 
-	c_dTS_Kal -> Write();
+	c_dTS_KAL -> Write();
 	//============================================================================================ Time stamp =====
 
 	//===== TDC ===================================================================================================
@@ -1289,15 +1313,51 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 		cKAL_TOT[ii] -> Write();
 	}
 
-  //==== TOT ================================================================= 
-	TCanvas* c_
+  //==== Multiplicity ======================================================== 
+	TCanvas * cMulti = new TCanvas("===== Multi ===========", "===== Multi ===========", 1, 1);
+	cMulti -> Write();
+
+	TCanvas* cNIM_Multi = new TCanvas(Form("cNIM_Multi"), Form("cNIM_Multi"), 1200, 600);
+	cNIM_Multi -> cd(1);
+  SetMargins();
+	hNIM_Multi -> Draw("colz");
+  gPad -> SetLogz(1);
+  gPad -> Update();
+	cNIM_Multi -> cd(1) -> Modified();
+	cNIM_Multi -> cd(1) -> Update();
+	cNIM_Multi -> Write();
+
+	TCanvas* cKAL_Multi = new TCanvas(Form("cKAL_Multi"), Form("cKAL_Multi"), 1200, 600);
+	cKAL_Multi -> Divide(col, row);
+	for (int ii = 0; ii < IP_max; ii++) {
+	  cKAL_Multi -> cd( ii + 1 );
+    SetMargins();
+	  hKAL_Multi[ii] -> Draw("colz");
+    gPad -> SetLogz( ii + 1 );
+    gPad -> Update();
+	  cKAL_Multi -> cd( ii + 1 ) -> Modified();
+	  cKAL_Multi -> cd( ii + 1 ) -> Update();
+	}
+	cKAL_Multi -> Write();
 
 	//================================================================================================== TDC ======
+	TCanvas* cKAL_NIM2 = new TCanvas(Form("cKAL_NIM2"), Form("cKAL_NIM2"), 1200, 600);
+	cKAL_NIM2 -> Divide(col, row);
+	for (int ii = 0; ii < IP_max; ii++) {
+	  cKAL_NIM2 -> cd( ii + 1 );
+    SetMargins();
+	  hKAL_NIM2[ii] -> Draw("colz");
+    gPad -> SetLogz( ii + 1 );
+    gPad -> Update();
+	  cKAL_NIM2 -> cd( ii + 1 ) -> Modified();
+	  cKAL_NIM2 -> cd( ii + 1 ) -> Update();
+	}
+	cKAL_NIM2 -> Write();
 	
   //===== End of Event Loop ====
   for(int i=0;i<32;i++){
     if(i==0) outfile << "IP=0, CH, total_count" << endl;
-    outfile << i << ", " << Traw_Kal_num_total[0][0][i] << endl;
+    outfile << i << ", " << Traw_KAL_num_total[0][0][i] << endl;
     if(i==32) cout << "ThDAC was written" << endl;
   }
   
@@ -1309,7 +1369,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   double rate_exe   = N_event[0] / Texe_total;
   RunTimer.Stop();
 
-	double Trun_total = TS_Kal[0];
+	double Trun_total = TS_KAL[0];
 	double rate_run   = N_event[0] / Trun_total;
 
 	double rate_mis   = SkipN / N_event[0];
