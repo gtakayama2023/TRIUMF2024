@@ -4,7 +4,7 @@
 TODAY="track"
 RAW_DIR="../RAW"
 ROOT_DIR="../ROOT"
-HISTORY_FILE="./kalliope/history.sh"
+HISTORY_FILE="./KAL/history.sh"
 
 # Default values for variables
 choice=-1
@@ -15,6 +15,7 @@ runN=7
 selected_dir=""
 selected_subdir=""
 runN_choice=""
+ONLINE_FLAG=0  # New ONLINE_FLAG default
 
 # Function to save current settings to history file
 save_to_history() {
@@ -27,6 +28,7 @@ save_to_history() {
     echo "selected_dir=\"$selected_dir\"" >> $HISTORY_FILE
     echo "selected_subdir=\"$selected_subdir\"" >> $HISTORY_FILE
     echo "runN_choice=\"$runN_choice\"" >> $HISTORY_FILE
+    echo "ONLINE_FLAG=$ONLINE_FLAG" >> $HISTORY_FILE  # Save ONLINE_FLAG
 }
 
 # Check if command-line arguments are provided
@@ -46,6 +48,7 @@ if [ "$#" -gt 0 ]; then
         ftree=${3:-$ftree}
         path_choice=${4:-$path_choice}
         runN=${5:-$runN}
+        ONLINE_FLAG=${6:-$ONLINE_FLAG}  # Set ONLINE_FLAG from command-line or use default
     fi
 else
     echo "Please type the number corresponding to what you want to do:"
@@ -67,6 +70,12 @@ else
 
         read -p "Fill in tree? [0: No, 1: Yes] : " ftree
         case "$ftree" in
+            0|1) ;;
+            *) echo "Invalid input. Type 0 or 1"; exit 1;;
+        esac
+
+        read -p "Set ONLINE_FLAG? [0: No, 1: Yes] : " ONLINE_FLAG
+        case "$ONLINE_FLAG" in
             0|1) ;;
             *) echo "Invalid input. Type 0 or 1"; exit 1;;
         esac
@@ -146,7 +155,7 @@ fi
 case "$choice" in
     0)  # Test rawdata2root
         IP_max=2
-        root -l -b -q "./rawdata2root.cpp($runN, $IP_max, $fNIM, $ftree, \"$path\")"
+        root -l -b -q "./rawdata2root.cpp($runN, $IP_max, $fNIM, $ftree, \"$path\", $ONLINE_FLAG)"  # Pass ONLINE_FLAG to root script
         cat ./txt/Nevent_run$runN.txt
         echo ""
         if sed '1d' ./txt/EvtMatch_run$runN.txt | grep -q "Mismatch"; then
@@ -181,3 +190,4 @@ esac
 
 # Save current settings to history file
 save_to_history
+

@@ -1,1 +1,1 @@
-rawdata2root/rawdata2root.20240826.cpp
+./rawdata2root/rawdata2root.20240826.cpp
