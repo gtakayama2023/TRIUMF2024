@@ -648,7 +648,6 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
             dTS_NIM = TS_NIM - TS_NIM_pre;
             TS_NIM_pre = TS_NIM;
             if (LOAD_N_FLAG_NIM) dTS_NIM_seq.push_back(dTS_NIM);
-            if (dTS_NIM_seq.size() >= LOAD_N) LOAD_N_FLAG_NIM = false;
           }
           N_NIM_event++;
           N_NIM_Sync_Interval++;
@@ -727,6 +726,7 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
         } else if (rawdata_nimtdc.fail()) cout << "Eroor : file read error" << endl;
       }
     }
+    if (dTS_NIM_seq.size() >= LOAD_N) LOAD_N_FLAG_NIM = false;
 
     for (int IP = 0; IP < IP_max; IP++) {
       //===== For Reline Up ======
