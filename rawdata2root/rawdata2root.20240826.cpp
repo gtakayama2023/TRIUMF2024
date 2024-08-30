@@ -32,7 +32,11 @@
 #include <TCanvas.h>
 
 #include "../include/configureIP.h"
+<<<<<<< HEAD
 #include "./include/setup.h"
+=======
+#include "../include/setup.h"
+>>>>>>> master
 
 //#define TEST_ON // ON: Read only 10k events
 #define TRACKING_ON  // ON: Tracking

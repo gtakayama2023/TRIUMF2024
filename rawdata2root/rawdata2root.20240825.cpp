@@ -237,14 +237,39 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       exit(1); // terminate with error
     }
   }
-  if(runN<10)       ofname = Form("../ROOT/%s/MSE00000%d.root",path.c_str(),runN);
-  else if(runN<100) ofname = Form("../ROOT/%s/MSE0000%d.root", path.c_str(),runN);
-  else              ofname = Form("../ROOT/%s/MSE000%d.root",  path.c_str(),runN);
+  if(runN<10)       ofname = Form("../ROOT/%s_MSE00000%d.root",path.c_str(),runN);
+  else if(runN<100) ofname = Form("../ROOT/%s_MSE0000%d.root", path.c_str(),runN);
+  else              ofname = Form("../ROOT/%s_MSE000%d.root",  path.c_str(),runN);
   cout << "create root file :" << ofname << endl;
  
   TFile *f = new TFile(ofname,"RECREATE");
 
   TTree *tree = new TTree("tree","tree");
+
+	//===== Statistics file =====
+	TString stat_name;
+  if(runN<10)       stat_name = Form("../ROOT/%s_MSE00000%d.html",path.c_str(),runN);
+  else if(runN<100) stat_name = Form("../ROOT/%s_MSE0000%d.html", path.c_str(),runN);
+  else              stat_name = Form("../ROOT/%s_MSE000%d.html",  path.c_str(),runN);
+  std::ofstream stat_file(stat_name);
+
+  stat_file << "<!DOCTYPE html>\n";
+  stat_file << "<html lang=\"en\">\n";
+  stat_file << "<head>\n";
+  stat_file << "    <meta charset=\"UTF-8\">\n";
+  stat_file << "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
+  stat_file << "    <title>Event Statistics</title>\n";
+  stat_file << "    <style>\n";
+  stat_file << "        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }\n";
+  stat_file << "        .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }\n";
+  stat_file << "        h1 { text-align: center; color: #333; }\n";
+  stat_file << "        p { margin: 10px 0; padding: 10px; background-color: #e9ecef; border-radius: 4px; }\n";
+  stat_file << "        .label { font-weight: bold; }\n";
+  stat_file << "        th, td { width: 150px; } /* 列の幅を指定 */\n";
+  stat_file << "    </style>\n";
+  stat_file << "</head>\n";
+  stat_file << "<body>\n";
+  stat_file << "    <div class=\"container\">\n";
   
   //===== Initialize =====
   for(int i=0;i<12;i++)for(int j=0;j<32;j++)for(int k=0;k<10;k++)Traw_Kal_L[i][j][k]=0;
@@ -318,7 +343,11 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   vector<TH1F*> hdTS_Kal;
   hdTS_Kal.resize(IP_max);
   for(int i=0;i<IP_max;i++){
+<<<<<<< HEAD
     hdTS_Kal[i] = new TH1F(Form("hdTS_Kal_%d",i),Form("dTS_Kal[%d]; TDC ch; dTS_Kal",i),  1000,-1e-9,1e-9);
+=======
+    hdTS_Kal[i] = new TH1F(Form("hdTS_Kal_%d",i),Form("#it{TS}_{Kal}(%d) #it{interval}; #it{TS}_{Kal}(%d) #it{interval} [s]; (#it{counts})", i, i),  1000,0,1e-2);
+>>>>>>> master
   }
   TH2F *hdTS_Kal_2D;
   hdTS_Kal_2D = new TH2F("hdTS_Kal_2D","hdTS_Kal_2D; Kalliope IP; dTS_Kal",12,0,12,1000,-1e-6,1e-6);
@@ -326,7 +355,11 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   vector<TH2F*> hTS_diff;
   hTS_diff.resize(IP_max);
   for(int i=0;i<IP_max;i++){
+<<<<<<< HEAD
     hTS_diff[i] = new TH2F(Form("hTS_diff_%d",i),Form("#it{TS}_{Kal}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} (s); #it{TS}_{Kal}(%d) - TS_{NIM} (s)",i, i), 1000, 0, 10, 1000, -1e-4, 1e-4);
+=======
+    hTS_diff[i] = new TH2F(Form("hTS_diff_%d",i),Form("#it{TS}_{Kal}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} [s]; #it{TS}_{Kal}(%d) - #it{TS}_{NIM} [s]",i, i), 1000, 0, 20, 1000, -4e-5, 4e-5);
+>>>>>>> master
   }
   TH2F *hTS_diff_2D;
   hTS_diff_2D = new TH2F("hTS_diff_2D","hTS_diff_2D; Kalliope IP; TS_diff",12,0,12,1000,-1e-6,1e-6);
@@ -336,6 +369,15 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   for(int i=0;i<IP_max;i++){
     hdTS_diff[i] = new TH1F(Form("hdTS_diff_%d",i),Form("dTS_diff[%d]; TDC ch; dTS_diff",i),1000,-1e-9,1e-9);
   }
+<<<<<<< HEAD
+=======
+	//
+  vector<TH2F*> hdTS_calib;
+  hdTS_calib.resize(IP_max);
+  for(int i=0;i<IP_max;i++){
+    hdTS_calib[i] = new TH2F(Form("hdTS_calib_%d",i),Form("#it{TS}_{Kal_calib}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} [s]; #it{TS}_{Kal_calib}(%d) - TS_{NIM} [s]",i, i), 1000, 0, 10, 1000, -1e-6, 1e-6);
+  }
+>>>>>>> master
 
   //===== Histgram for Rawdata =====
   vector<TH2F*> hTDC_L;
@@ -732,9 +774,8 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       }
     }
 
-		//cout << TS_diff[0] << ", " << dTS_diff[1] << endl;
-  
     //===== Display Procedure of Event Loop =====
+		if(N_event[0] == 0) cout << endl;
     if(N_event[0] %1000 == 0){
       //double Trun = RunTimer.RealTime();
       double Trun = RunTimer.RealTime();
@@ -757,10 +798,49 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
     }
     
     //if(FILL_FLAG && SYNC_FLAG[IP_max-1]){
+<<<<<<< HEAD
     if(FILL_FLAG && SKIP_FLAG_new){
 		  cout << Form("N_event| [NIM] = %d, [0] = %d,  [1] = %d, Skip| Kal[0] = %d, Kal[1] = %d, NIM = %d, minValue = %0.2f, maxValue = %0.2f",
 						        N_NIM_event,N_event[0],N_event[1],        Skip_NIM, Skip_Kal[0], Skip_Kal[1],       1e6*minValue,     1e6*maxValue)     
+=======
+		if (N_event[0] == 2) {
+		  cout << endl;
+      cout << "--------------------------------------------------------------------------------" << endl;
+      cout << "------ Events Mismatch ---------------------------------------------------------" << endl;
+      cout << "--------------------------------------------------------------------------------" << endl;
+			cout << Form("%21s       ||%18s        |","Number of Events", "TS interval [us]") << endl;
+			cout << Form("------------------------------------------------------- |") << endl;
+		  cout << Form("%7s | %7s | %7s || %6s | %6s | %6s |", "NIM", "Kal0", "Kal1", "NIM", "Kal[0]", "Kal[1]") << endl;
+			cout << Form("------------------------------------------------------- |") << endl;
+
+			// Statistics file
+      stat_file << "        <h1>Events Mismatch</h1>\n";
+      stat_file << "        <table>\n";
+      stat_file << "            <tr><th colspan=\"3\">Number of Events</th><th colspan=\"3\">TS Interval [us]</th></tr>\n";
+      stat_file << "            <tr>\n";
+      stat_file << "                <td>NIM</td>\n";
+      stat_file << "                <td>Kal0</td>\n";
+      stat_file << "                <td>Kal1</td>\n";
+      stat_file << "                <td>NIM</td>\n";
+      stat_file << "                <td>Kal[0]</td>\n";
+      stat_file << "                <td>Kal[1]</td>\n";
+      stat_file << "            </tr>\n";
+		}
+
+    if (FILL_FLAG && SKIP_FLAG_new){
+		  cout << Form("%7d | %7d | %7d || %6.2f | %6.2f | %6.2f |",
+						        N_NIM_event,N_event[0],N_event[1], 1e6*dTS_NIM, 1e6*dTS_Kal[0], 1e6*dTS_Kal[1])     
+>>>>>>> master
 					 << endl;
+
+			// Statistics file
+      stat_file << "            <tr>\n";
+      stat_file << "                <td>" << N_NIM_event << "</td>\n";
+      stat_file << "                <td>" << N_event[0] << "</td>\n";
+      stat_file << "                <td>" << N_event[1] << "</td>\n";
+      stat_file << "                <td>" << Form("%6.2f",1e6*dTS_NIM   ) << "</td>\n";
+      stat_file << "                <td>" << Form("%6.2f",1e6*dTS_Kal[0]) << "</td>\n";
+      stat_file << "                <td>" << Form("%6.2f",1e6*dTS_Kal[1]) << "</td>\n";
 		}
 			// hogehoge
 
@@ -789,36 +869,36 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       }
 
       //===== Check Event Mismatch ======
-      if(SYNC_FLAG[0]){
-      	if(N_Kal_Sync[0]==1){
-	         ofEvtMatch << setw(8) << "Sync No" << ", " << setw(10) << "Event No" << ", "
-		         << setw(8+4*IP_max) << "N_Sync_Interval" <<", "
-		         << setw(15)<< "Event Mismatch" << endl;
-	         ofEvtMatch << setw(8) << "" << "  " << setw(10) << "" << "  "
-		         << setw(8) << "NIM-TDC" <<", "<<setw(IP_max*4-2)<< "Kalliope"
-		         << ", " << setw(15) << "" << endl;
-	      for(int IP=0;IP<IP_max;IP++){
-	        if(IP==0){ofEvtMatch << setw(8) << "" << "  " << setw(10) << "" << "  "
-		    		 << setw(8) << 16;
-	        }
-	        ofEvtMatch << ", " << setw(2) << IP + 1;
-	        
-	        if(IP==IP_max-1) ofEvtMatch << ", " << setw(15) << "" << endl;
-	      }
-	    }
-	      for(int IP=0;IP<IP_max;IP++){
-	        string EvtMismatch = "";
-	        if(N_NIM_Sync_Interval != N_Sync_Interval[IP]) EvtMismatch = "Event Mismatch";
-	        if(IP==0){
-	          ofEvtMatch << setw(8) << N_Kal_Sync[0] << "  " << setw(10) << N_event[0] << "  "
-	      	       << setw(8) << N_NIM_Sync_Interval;
-	        }
-	        ofEvtMatch << ", " << setw(2) << N_Sync_Interval[IP];
-	        if(IP==IP_max-1) ofEvtMatch << ", " << setw(15) << EvtMismatch << endl;
-	        N_Sync_Interval[IP] = 0;
-	      }
-	      N_NIM_Sync_Interval = 0;	    
-      }
+      //if(SYNC_FLAG[0]){
+      //	if(N_Kal_Sync[0]==1){
+	    //     ofEvtMatch << setw(8) << "Sync No" << ", " << setw(10) << "Event No" << ", "
+		  //       << setw(8+4*IP_max) << "N_Sync_Interval" <<", "
+		  //       << setw(15)<< "Event Mismatch" << endl;
+	    //     ofEvtMatch << setw(8) << "" << "  " << setw(10) << "" << "  "
+		  //       << setw(8) << "NIM-TDC" <<", "<<setw(IP_max*4-2)<< "Kalliope"
+		  //       << ", " << setw(15) << "" << endl;
+	    //  for(int IP=0;IP<IP_max;IP++){
+	    //    if(IP==0){ofEvtMatch << setw(8) << "" << "  " << setw(10) << "" << "  "
+		  //  		 << setw(8) << 16;
+	    //    }
+	    //    ofEvtMatch << ", " << setw(2) << IP + 1;
+	    //    
+	    //    if(IP==IP_max-1) ofEvtMatch << ", " << setw(15) << "" << endl;
+	    //  }
+	    //}
+	    //  for(int IP=0;IP<IP_max;IP++){
+	    //    string EvtMismatch = "";
+	    //    if(N_NIM_Sync_Interval != N_Sync_Interval[IP]) EvtMismatch = "Event Mismatch";
+	    //    if(IP==0){
+	    //      ofEvtMatch << setw(8) << N_Kal_Sync[0] << "  " << setw(10) << N_event[0] << "  "
+	    //  	       << setw(8) << N_NIM_Sync_Interval;
+	    //    }
+	    //    ofEvtMatch << ", " << setw(2) << N_Sync_Interval[IP];
+	    //    if(IP==IP_max-1) ofEvtMatch << ", " << setw(15) << EvtMismatch << endl;
+	    //    N_Sync_Interval[IP] = 0;
+	    //  }
+	    //  N_NIM_Sync_Interval = 0;	    
+      //}
       
       //====== Tracking ======
 #ifdef TRACKING_ON
@@ -899,6 +979,87 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       if(ftree) tree->Fill();
     } //End of Fill Loop
   }
+<<<<<<< HEAD
+=======
+
+	//===== Histogram & Fitting ===================================================================================
+
+	//==== dTS vs TS_NIM ===================================================
+  vector<TF1*> fdTS;
+  fdTS.resize(IP_max);
+  for(int i=0;i<IP_max;i++){
+    fdTS[i] = new TF1(Form("fdTS_%d",i), "pol1", 0, 10);
+  }
+  int col = int( sqrt( double(IP_max) ) + 1 );
+  int row = int( sqrt( double(IP_max) )     );
+
+	TCanvas * c_dTS = new TCanvas("c_dTS", "c_dTS", 1200, 600);
+	c_dTS -> Divide(col, row);
+
+	for (int ii = 0; ii < IP_max; ii++) {
+		c_dTS    -> cd(ii + 1);
+		SetMargins();
+		hTS_diff[ii] -> Fit(fdTS[ii], "L", "", 0, 4);
+		hTS_diff[ii] -> Draw("colz");
+		gPad -> SetLogy(0);
+		gPad -> Update();
+		c_dTS -> cd(ii + 1) -> Modified();
+		c_dTS -> cd(ii + 1) -> Update();
+	}
+
+	c_dTS -> Write();
+
+	//==== dTS_cal vs TS_NIM ===============================================
+  vector<TF1*> fdTS_calib;
+  fdTS_calib.resize(IP_max);
+  for(int i=0;i<IP_max;i++){
+    fdTS_calib[i] = new TF1(Form("fdTS_calib_%d",i), "pol1", 0, 10);
+  }
+  col = int( sqrt( double(IP_max) ) + 1 );
+  row = int( sqrt( double(IP_max) )     );
+
+	TCanvas * c_dTS_calib = new TCanvas("c_dTS_calib", "c_dTS_calib", 1200, 600);
+	c_dTS_calib -> Divide(col, row);
+
+	for (int ii = 0; ii < IP_max; ii++) {
+		c_dTS_calib    -> cd(ii + 1);
+		SetMargins();
+		hdTS_calib[ii] -> Fit(fdTS_calib[ii], "L", "", 0, 4);
+		hdTS_calib[ii] -> Draw("colz");
+		gPad -> SetLogy(0);
+		gPad -> Update();
+		c_dTS_calib -> cd(ii + 1) -> Modified();
+		c_dTS_calib -> cd(ii + 1) -> Update();
+	}
+
+	c_dTS_calib -> Write();
+
+	//==== dTS expo fitting ================================================
+  vector<TF1*> fdTS_Kal;
+  fdTS_Kal.resize(IP_max);
+  for(int i=0;i<IP_max;i++){
+    fdTS_Kal[i] = new TF1(Form("fdTS_Kal_%d",i), "expo", 0, 1e-2);
+  }
+  col = int( sqrt( double(IP_max) ) + 1 );
+  row = int( sqrt( double(IP_max) )     );
+
+	TCanvas * c_dTS_Kal = new TCanvas("c_dTS_Kal", "c_dTS_Kal", 1200, 600);
+	c_dTS_Kal -> Divide(col, row);
+
+	for (int ii = 0; ii < IP_max; ii++) {
+		c_dTS_Kal    -> cd(ii + 1);
+		SetMargins();
+		hdTS_Kal[ii] -> Fit(fdTS_Kal[ii], "L", "", 0, 100e-6);
+		hdTS_Kal[ii] -> Draw();
+		gPad -> SetLogy(1);
+		gPad -> Update();
+		c_dTS_Kal -> cd(ii + 1) -> Modified();
+		c_dTS_Kal -> cd(ii + 1) -> Update();
+	}
+
+	c_dTS_Kal -> Write();
+
+>>>>>>> master
   //===== End of Event Loop ====
   for(int i=0;i<32;i++){
     if(i==0) outfile << "IP=0, CH, total_count" << endl;
@@ -908,44 +1069,63 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   
   //====== Close Input File Stream ======
   //====== Show Run Information ======
-  ofNevent << setw(10) << "DAQ"
-	   << ", " << setw(10) << "N_event"
-	   << ", " << setw(10) << "N_Trigger"
-	   << ", " << setw(10) << "N_Sync(x2)"
-	   << ", " << setw(15) << "Last Trig. No."
-	   << ", " << setw(15) << "Last Trig.2 No."
-	   << ", " << setw(10) << "LOS FLAG" << endl;
-  ofNevent << setw(10) << "NIM-TDC"
-	   << ", " << setw(10) << N_NIM_event
-	   << ", " << setw(10) << N_NIM_event - N_NIM_Sync * 2
-	   << ", " << setw(10) << N_NIM_Sync * 2
-	   << ", " << setw(15) << N_NIM_Last
-	   << ", " << setw(15) << N_NIM_Last2
-	   << ", " << setw(10) << N_NIM_LOS << endl;  
+  //ofNevent << setw(10) << "DAQ"
+	//   << ", " << setw(10) << "N_event"
+	//   << ", " << setw(10) << "N_Trigger"
+	//   << ", " << setw(10) << "N_Sync(x2)"
+	//   << ", " << setw(15) << "Last Trig. No."
+	//   << ", " << setw(15) << "Last Trig.2 No."
+	//   << ", " << setw(10) << "LOS FLAG" << endl;
+  //ofNevent << setw(10) << "NIM-TDC"
+	//   << ", " << setw(10) << N_NIM_event
+	//   << ", " << setw(10) << N_NIM_event - N_NIM_Sync * 2
+	//   << ", " << setw(10) << N_NIM_Sync * 2
+	//   << ", " << setw(15) << N_NIM_Last
+	//   << ", " << setw(15) << N_NIM_Last2
+	//   << ", " << setw(10) << N_NIM_LOS << endl;  
 
   for(int IP=0;IP<IP_max;IP++){
-    ofNevent << setw(10) << Form("Kalliope %d", IP)
-	     << ", " << setw(10) << N_event[IP]
-	     << ", " << setw(10) << N_event[IP] - N_Kal_Sync[IP] * 2
-	     << ", " << setw(10) << N_Kal_Sync[IP] * 2
-	     << ", " << setw(15) << N_Kal_Last[IP]
-	     << ", " << setw(15) << N_Kal_Last2[IP]
-	     << ", " << setw(10) << N_Kal_LOS[IP] << endl;  
+    //ofNevent << setw(10) << Form("Kalliope %d", IP)
+	  //   << ", " << setw(10) << N_event[IP]
+	  //   << ", " << setw(10) << N_event[IP] - N_Kal_Sync[IP] * 2
+	  //   << ", " << setw(10) << N_Kal_Sync[IP] * 2
+	  //   << ", " << setw(15) << N_Kal_Last[IP]
+	  //   << ", " << setw(15) << N_Kal_Last2[IP]
+	  //   << ", " << setw(10) << N_Kal_LOS[IP] << endl;  
     rawdata[IP].close();
   }
   double Trun_total = RunTimer.RealTime();
   double rate_ave = N_event[0] / Trun_total;
   RunTimer.Stop();
 
-  cout << "*********************************" << endl;  
-  cout << "Total Real time : "                << Trun_total                     << " s"      << endl;
-  cout << "Total Event : "                    << N_event[0]                     << " events" << endl;
-  cout << "Average Count Rate : "             << rate_ave                       << " cps"    << endl;
-  cout << "Total Tracking Available Event : " << N_track                        << " event"  << endl;
-  cout << "Tracking Available Count Rate :  " << (double)N_track/N_event[0]*100 << " %"      << endl;
-  cout << "*********************************" << endl;
+	cout << endl;
+  cout << "--------------------------------------------------------------------------------" << endl;  
+  cout << "------ Statistics --------------------------------------------------------------" << endl;  
+  cout << "--------------------------------------------------------------------------------" << endl;  
+  cout << "Total Execution time :   " << Trun_total                     << " s"      << endl;
+  cout << "Total Number of Events : " << N_event[0]                     << " events" << endl;
+  cout << "Processing speed (/s) :  " << rate_ave                       << " cps"    << endl;
+  cout << "Total Trackable Events : " << N_track                        << " event"  << endl;
+  cout << "Trackable Event Ratio :  " << (double)N_track/N_event[0]*100 << " %"      << endl;
+  cout << "--------------------------------------------------------------------------------" << endl;  
+	cout << endl;
   tree->Write();
   f->Write();   
+
+  stat_file << "            </tr>\n";
+  stat_file << "        </table>\n";
+  stat_file << "        <h1>Event Statistics</h1>\n";
+  stat_file << "        <p><span class=\"label\">Total Execution Time:</span> " << Trun_total << " s</p>\n";
+  stat_file << "        <p><span class=\"label\">Total Number of Events:</span> " << N_event[0] << " events</p>\n";
+  stat_file << "        <p><span class=\"label\">Processing Speed (/s):</span> " << rate_ave << " cps</p>\n";
+  stat_file << "        <p><span class=\"label\">Total Trackable Events:</span> " << N_track << " event" << (N_track == 1 ? "" : "s") << "</p>\n";
+  stat_file << "        <p><span class=\"label\">Trackable Event Ratio:</span> " << std::fixed << std::setprecision(1) << (double)N_track/N_event[0]*100 << " %</p>\n";
+  stat_file << "    </div>\n";
+  stat_file << "</body>\n";
+  stat_file << "</html>\n";
+
+  stat_file.close();
+
 }
 
 void ThDACScan(int IP_max=0, bool fNIM=0, bool ftree=0, const string& path="test"){

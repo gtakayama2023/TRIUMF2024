@@ -17,13 +17,21 @@
 #include <TStopwatch.h>
 #include <TCanvas.h>
 
-#include "./include/configureIP.h"
+#include "../include/configureIP.h"
 //#include "./include/setup.h"
 
 //#define TEST_ON // ON: Read only 10k events
 //#define TRACKING_ON  // ON: Tracking
 
 using namespace std;
+
+void SetMargins(Double_t top = 0.10, Double_t right = 0.15, Double_t bottom = 0.10, Double_t left = 0.15) {
+    gPad->SetTopMargin(top);
+    gPad->SetRightMargin(right);
+    gPad->SetBottomMargin(bottom);
+    gPad->SetLeftMargin(left);
+}
+
 
 unsigned int Read_Raw_32bit(const char* b){ // Little Endian
   return ((b[3] << 24) & 0xff000000) | // shift the 1st byte to 24 bit left
@@ -206,9 +214,9 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
     }
   }
   
-  if(runN<10)       ofname = Form("../ROOT/%s/MSE00000%d.root",path.c_str(),runN);
-  else if(runN<100) ofname = Form("../ROOT/%s/MSE0000%d.root", path.c_str(),runN);
-  else              ofname = Form("../ROOT/%s/MSE000%d.root",  path.c_str(),runN);
+  if(runN<10)       ofname = Form("../ROOT/%s_woEvtMatch_MSE00000%d.root",path.c_str(),runN);
+  else if(runN<100) ofname = Form("../ROOT/%s_woEvtMatch_MSE0000%d.root", path.c_str(),runN);
+  else              ofname = Form("../ROOT/%s_woEvtMatch_MSE000%d.root",  path.c_str(),runN);
   cout << "create root file :" << ofname << endl;
   
   TFile *f = new TFile(ofname,"RECREATE");
@@ -296,7 +304,7 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
   vector<TH2F*> hTS_diff;
   hTS_diff.resize(IP_max);
   for(int i=0;i<IP_max;i++){
-    hTS_diff[i] = new TH2F(Form("hTS_diff_%d",i),Form("TS_diff[%d] ;TS_NIM ;TS_diff",i), 1000, 0, 10, 1000, -1e-4, 1e-4);
+    hTS_diff[i] = new TH2F(Form("hTS_diff_%d",i),Form("#it{TS}_{Kal}(%d) - #it{TS}_{NIM} ;#it{TS}_{NIM} [s]; #it{TS}_{Kal}(%d) - #it{TS}_{NIM} [s]",i, i), 1000, 0, 10, 1000, -2e-5, 2e-5);
   }
   TH2F *hTS_diff_2D;
   hTS_diff_2D = new TH2F("hTS_diff_2D","hTS_diff_2D; Kalliope IP; TS_diff",12,0,12,1000,-1e-6,1e-6);
@@ -839,6 +847,35 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
       if(ftree) tree->Fill();
     } //End of Fill Loop
   }
+
+	//===== Histogram & Fitting ======================================================================
+	
+	//==== dTS vs TS_NIM ===================================================
+  vector<TF1*> fdTS;
+  fdTS.resize(IP_max);
+  for(int i=0;i<IP_max;i++){
+    fdTS[i] = new TF1(Form("fdTS_%d",i), "pol1", 0, 10);
+  }
+  int col = int( sqrt( double(IP_max) ) + 1 );
+  int row = int( sqrt( double(IP_max) )     );
+
+	TCanvas * c_dTS = new TCanvas("c_dTS", "c_dTS", 1200, 600);
+	c_dTS -> Divide(col, row);
+
+	for (int ii = 0; ii < IP_max; ii++) {
+		c_dTS    -> cd(ii + 1);
+		SetMargins();
+		hTS_diff[ii] -> Fit(fdTS[ii], "L", "", 0, 4);
+		hTS_diff[ii] -> Draw("colz");
+		gPad -> SetLogy(0);
+		gPad -> Update();
+		c_dTS -> cd(ii + 1) -> Modified();
+		c_dTS -> cd(ii + 1) -> Update();
+	}
+
+	c_dTS -> Write();
+
+
   //===== End of Event Loop ====
   for(int i=0;i<32;i++){
     if(i==0) outfile << "IP=0, CH, total_count" << endl;
