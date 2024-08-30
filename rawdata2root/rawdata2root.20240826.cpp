@@ -35,7 +35,7 @@
  //#include "./include/setup.h"
 
 //#define TEST_ON // ON: Read only 10k events
-//#define TRACKING_ON  // ON: Tracking
+#define TRACKING_ON  // ON: Tracking
 
 using namespace std;
 
