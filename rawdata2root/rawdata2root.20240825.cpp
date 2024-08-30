@@ -887,7 +887,10 @@ void rawdata2root(int runN=10, int IP_max=0, bool fNIM=0, bool ftree=0, const st
 	            Fiber_FLAG[xy][ud][oi] = true;
 	            for(int ch=0;ch<ch_max;ch++){
 	      	      if(Fiber_CH_FLAG[xy][ud][oi]){
-	      	        a[xy][oi] = (double)ch + 0.5 - ((double)ch_max/2.0);
+	      	        //a[xy][oi] = (double)ch + 0.5 - ((double)ch_max/2.0); // bef.2024.8.30
+			a[xy][oi] = ((double)ch_max/2.0) - (double)ch + 0.5; // aft.2024.8.30
+			// because we re-defined fiber position in reversal order 2024.8.30
+			// from muon beam, right is +X = CH0, left is -X : CH31
 	      	      }
 	            }
 	          }
