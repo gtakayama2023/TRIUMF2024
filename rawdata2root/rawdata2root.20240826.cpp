@@ -4,31 +4,18 @@
 //************************************************************************
 
 #include <iostream>
-
 #include <fstream>
-
 #include <sstream>
-
 #include <cstdlib>
-
 #include <vector>
-
 #include <algorithm>
-
 #include <limits>
-
 #include <cmath>
-
 #include <TFile.h>
-
 #include <TTree.h>
-
 #include <TH1.h>
-
 #include <TH2.h>
-
 #include <TStopwatch.h>
-
 #include <TCanvas.h>
 
 #include "../include/configureIP.h"
@@ -660,8 +647,8 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
             TS_NIM = GetNETtime(rawdata_nimtdc, data) - TS_NIM_0;
             dTS_NIM = TS_NIM - TS_NIM_pre;
             TS_NIM_pre = TS_NIM;
-            if (dTS_NIM_seq.size() >= LOAD_N) LOAD_N_FLAG_NIM = false;
             if (LOAD_N_FLAG_NIM) dTS_NIM_seq.push_back(dTS_NIM);
+            if (dTS_NIM_seq.size() >= LOAD_N) LOAD_N_FLAG_NIM = false;
           }
           N_NIM_event++;
           N_NIM_Sync_Interval++;
