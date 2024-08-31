@@ -1050,7 +1050,6 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
       }
     }
 
-
     //===== Filling data ==========================================================================================
     if (FILL_FLAG && !SKIP_FLAG_new) {
 
