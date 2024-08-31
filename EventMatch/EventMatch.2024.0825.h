@@ -2,7 +2,7 @@
 // This class has been automatically generated on
 // Sun Aug 11 19:49:38 2024 by ROOT version 6.28/10
 // from TTree tree/tree
-// found on file: ../ROOT/test_0808/run_154/MSE000154.root
+// found on file: ../ROOT/test_0808/run_94/MSE000094.root
 //////////////////////////////////////////////////////////
 
 #ifndef EventMatch_h
@@ -85,22 +85,26 @@ public :
 
   TH2F *hTS_calib_diff[12];
   
-  EventMatch(TTree *tree=0);
+   EventMatch(TTree *tree=0);
   EventMatch(Int_t runN);
-  virtual ~EventMatch();
-  virtual Int_t    Cut(Long64_t entry);
-  virtual Int_t    GetEntry(Long64_t entry);
-  virtual Long64_t LoadTree(Long64_t entry);
-  virtual void     Init(TTree *tree);
+   virtual ~EventMatch();
+   virtual Int_t    Cut(Long64_t entry);
+   virtual Int_t    GetEntry(Long64_t entry);
+   virtual Long64_t LoadTree(Long64_t entry);
+   virtual void     Init(TTree *tree);
   virtual void     DC_TS_Match(int runN, int subrunN);
-  virtual void     DC_TS_Fit(int runN, int subrunN);
+  virtual void     DC_TS_Fit(int runN);
+  virtual void     DC_TS_Calibration(int runN, int subrunN);
+  virtual void     DC_Event_Matching(int runN, int subrunN, Double_t accuracy_ns);
+  virtual void     DC_NIM_Matching(int runN, int subrunN, Double_t accuracy_ns);
+  
   virtual void     TS_Fit(int IP);
   virtual void     TS_Calibration(int IP);
   virtual void     All_TS_Calibration(int IP_max);
   //virtual void     GetEnrtySameTS(Double_t timeInSecond, Double_t accuracyInNanoSecond);
   // GetEntrySameTS cause segmentation violation??
-  virtual Bool_t   Notify();
-  virtual void     Show(Long64_t entry = -1);
+   virtual Bool_t   Notify();
+   virtual void     Show(Long64_t entry = -1);
 
 
   // Drift Chamber
@@ -108,6 +112,16 @@ public :
   Int_t triggerTime;
   ULong64_t triggerTimeStamp;
   Int_t adcSum[64];
+
+  // use in TS_Fit and TS_calibration
+  std::vector<double> TS_x;
+  std::vector<double> dTS_y;
+  std::vector<double> a_DC;
+  std::vector<double> b_DC;
+  std::vector<double> chi2_DC;
+  std::vector<int> ndf_DC;
+  //a_DC.resize(0); b_DC.resize(0); chi2_DC.resize(0); ndf_DC.resize(0);
+  
   /*
   TBranch *b_triggerNumber;    //!
   TBranch *b_triggerTime;      //!
@@ -141,9 +155,9 @@ EventMatch::EventMatch(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("../ROOT/test_0808/run_154/MSE000154.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("../ROOT/test_0808/run_94/MSE000094.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("../ROOT/test_0808/run_154/MSE000154.root");
+         f = new TFile("../ROOT/test_0808/run_94/MSE000094.root");
       }
       f->GetObject("tree",tree);
 
@@ -153,7 +167,7 @@ EventMatch::EventMatch(TTree *tree) : fChain(0)
 
 EventMatch::EventMatch(Int_t runN)
 {
-  TString rootfile = Form("../ROOT/test_0808/run_%d/MSE000%d.root", runN, runN);
+  TString rootfile = Form("../ROOT/test_0808/run_%d/MSE0000%d.root", runN, runN);
   cout << rootfile << endl;
   TTree *tree;
   TFile *f = (TFile *)gROOT->GetListOfFiles()->FindObject(rootfile);

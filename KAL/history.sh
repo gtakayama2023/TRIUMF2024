@@ -1,10 +1,9 @@
 #!/bin/bash
-choice=0
-fNIM=1
+choice=1
+fNIM=0
 ftree=0
 path_choice="prompt"
-runN=8
-selected_dir="../RAW/test_0808/"
-selected_subdir="../RAW/test_0808/37kcps-HV67.2V-U/"
-runN_choice="2"
+runN=6
+selected_dir="../RAW/TEST/"
+runN_choice="0"
 ONLINE_FLAG=1
