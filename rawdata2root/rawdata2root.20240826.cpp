@@ -266,9 +266,9 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
       exit(1); // terminate with error
     }
   }
-  if (runN < 10) ofname = Form("../ROOT/%s_MSE00000%d.root", path.c_str(), runN);
-  else if (runN < 100) ofname = Form("../ROOT/%s_MSE0000%d.root", path.c_str(), runN);
-  else ofname = Form("../ROOT/%s_MSE000%d.root", path.c_str(), runN);
+  if (runN < 10) ofname       = Form("../ROOT/%s/MSE00000%d.root", path.c_str(), runN);
+  else if (runN < 100) ofname = Form("../ROOT/%s/MSE0000%d.root", path.c_str(), runN);
+  else ofname                 = Form("../ROOT/%s/MSE000%d.root", path.c_str(), runN);
   cout << "create root file :" << ofname << endl;
 
   TFile * f = new TFile(ofname, "RECREATE");
@@ -277,9 +277,9 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
 
   //===== Statistics file =====
   TString stat_name;
-  if (runN < 10) stat_name = Form("../ROOT/%s_MSE00000%d.html", path.c_str(), runN);
-  else if (runN < 100) stat_name = Form("../ROOT/%s_MSE0000%d.html", path.c_str(), runN);
-  else stat_name = Form("../ROOT/%s_MSE000%d.html", path.c_str(), runN);
+  if (runN < 10) stat_name = Form("../ROOT/%s/MSE00000%d.html", path.c_str(), runN);
+  else if (runN < 100) stat_name = Form("../ROOT/%s/MSE0000%d.html", path.c_str(), runN);
+  else stat_name = Form("../ROOT/%s/MSE000%d.html", path.c_str(), runN);
   std::ofstream stat_file(stat_name);
 
   stat_file << "<!DOCTYPE html>\n";
@@ -1577,11 +1577,8 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
   stat_file.close();
 }
 
-void ThDACScan(int IP_max = 0, bool fNIM = 0, bool ftree = 0,
-  const string & path = "test") {
-  for (int runN = 0; runN < 16; runN++) {
-    rawdata2root(runN, IP_max, fNIM, ftree, path);
-  }
+void ThDACScan(int runN, int IP_max = 0, bool fNIM = 0, bool ftree = 0, const string & path = "test", bool ONLINE_FLAG = true) {
+  rawdata2root(runN, IP_max, fNIM, ftree, path, ONLINE_FLAG);
 }
 
 void Check_CH_Setting() {
