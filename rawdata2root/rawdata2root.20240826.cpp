@@ -4,35 +4,22 @@
 //************************************************************************
 
 #include <iostream>
-
 #include <fstream>
-
 #include <sstream>
-
 #include <cstdlib>
-
 #include <vector>
-
 #include <algorithm>
-
 #include <limits>
-
 #include <cmath>
-
 #include <TFile.h>
-
 #include <TTree.h>
-
 #include <TH1.h>
-
 #include <TH2.h>
-
 #include <TStopwatch.h>
-
 #include <TCanvas.h>
 
-#include "../include/configureIP.h"
-#include "../include/setup.h"
+#include "./include/configureIP.h"
+#include "./include/setup.h"
 
 //#define TEST_ON // ON: Read only 10k events
 #define TRACKING_ON  // ON: Tracking
@@ -553,7 +540,8 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
   RunTimer.Start();
 
   // Data size to read in Online mode
-  const size_t READ_SIZE_NIM = 1 * 1024 * 1024 ;  
+  //const size_t READ_SIZE_NIM = 1 * 1024 * 1024 ;  
+  const size_t READ_SIZE_NIM = 50 * 1024 ;  
 
   // NIMのファイルサイズを取得
   rawdata_nimtdc.seekg(0, ios::end);
@@ -660,7 +648,6 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
             TS_NIM = GetNETtime(rawdata_nimtdc, data) - TS_NIM_0;
             dTS_NIM = TS_NIM - TS_NIM_pre;
             TS_NIM_pre = TS_NIM;
-            if (dTS_NIM_seq.size() >= LOAD_N) LOAD_N_FLAG_NIM = false;
             if (LOAD_N_FLAG_NIM) dTS_NIM_seq.push_back(dTS_NIM);
           }
           N_NIM_event++;
@@ -740,6 +727,7 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
         } else if (rawdata_nimtdc.fail()) cout << "Eroor : file read error" << endl;
       }
     }
+    if (dTS_NIM_seq.size() >= LOAD_N) LOAD_N_FLAG_NIM = false;
 
     for (int IP = 0; IP < IP_max; IP++) {
       //===== For Reline Up ======
