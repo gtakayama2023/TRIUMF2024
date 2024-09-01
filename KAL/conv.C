@@ -1,3 +1,14 @@
+#include <iostream>
+#include <TROOT.h>
+#include <TFile.h>
+#include <TTree.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TStopwatch.h>
+#include <TCanvas.h>
+
+using namespace std;
+
 // conv.C
 void conv(int mode = 0, int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0, const string& path = "test", bool ONLINE_FLAG = false) {
   gROOT->ProcessLine("#include \"rawdata2root.cpp\"");
@@ -7,4 +18,3 @@ void conv(int mode = 0, int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree
     default: cerr << "Unknown mode: " << mode << endl; break;
   }
 }
-

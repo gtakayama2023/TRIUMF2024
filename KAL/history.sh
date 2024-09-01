@@ -1,9 +1,9 @@
 #!/bin/bash
 choice=0
 fNIM=1
-ftree=0
+ftree=1
 path_choice="prompt"
-runN=6
+runN=7
 selected_dir="../RAW/test_0808/"
 runN_choice="0"
 ONLINE_FLAG=1

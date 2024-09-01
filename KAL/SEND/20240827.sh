@@ -135,8 +135,6 @@ cat <<EOF > "$index_html"
         <h1>$title</h1>
     </header>
     <main>
-        <h2>Statistics List</h2>
-        <ul>
 EOF
 
 # Create a temporary file to hold HTML entries
@@ -192,7 +190,6 @@ done
 
 # Close the JSROOT list section in the new index file
 cat <<EOF >> "$index_html"
-        </ul>
 
         <h2>Data</h2>
         <table>
@@ -276,7 +273,7 @@ cat <<EOF > "$main_index_html"
         <h1>TRIUMF2024 experiment: Data Platform</h1>
     </header>
     <main>
-        <h2>Directory Index</h2>
+        <h2>Directory</h2>
         <ul>
 EOF
 

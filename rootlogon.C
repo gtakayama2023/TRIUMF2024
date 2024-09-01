@@ -63,6 +63,11 @@ void rootlogon()
   gStyle->SetTitleFont(132,"");
   gStyle->SetTextFont(132);
   gStyle->SetStatFont(132);
+
+	gROOT->LoadMacro("./mac/oHist.c");
+	//groot->loadmacro("./mac/zhist.c");
+  //groot->loadmacro("./mac/gsave.c");
+
   
 }
 
@@ -107,17 +112,18 @@ void LoadModule(std::string install_dir)
   modules.push_back("libXMLParser.so");
   //  modules.push_back("libanaroot.so"); // load at once
 
-  modules.push_back("libananadeko.so"); // load each modules one by one
-  modules.push_back("libanacore.so");
-  modules.push_back("libanabrips.so");
-  modules.push_back("libanadali.so");
-  modules.push_back("libanasamurai.so");
-  modules.push_back("libanacatana.so");
-  modules.push_back("libanaespri.so");
-  modules.push_back("libanawinds.so");
-  modules.push_back("libanaloop.so");
-  modules.push_back("libanaloopexample.so");
-  modules.push_back("libanaloopencexample.so");
+  modules.push_back("libananadeko.dylib"); // load each modules one by one
+  modules.push_back("libanacore.dylib");
+  modules.push_back("libanabrips.dylib");
+  modules.push_back("libanadali.dylib");
+  modules.push_back("libanasamurai.dylib");
+  modules.push_back("libanacatana.dylib");
+  modules.push_back("libanaespri.dylib");
+  modules.push_back("libanawinds.dylib");
+  modules.push_back("libanaloop.dylib");
+  //modules.push_back("libanaloopexample.dylib");
+  //modules.push_back("libanaloopencexample.dylib");
+  //modules.push_back("libanasilicons.dylib");
 
   std::vector<std::string>::iterator it = modules.begin();
   while(it != modules.end()){

@@ -1,4 +1,4 @@
 #!/bin/bash
 
 ./KAL/conv.sh load
-./KAL/send.sh TEST
+./KAL/send.sh test_0808
