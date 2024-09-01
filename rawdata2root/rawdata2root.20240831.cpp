@@ -3,6 +3,7 @@
 //    edit by S.Ishitani (Osaka University), 2024.08.10
 //************************************************************************
 
+// rawdata2root.20240831.cpp
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -11,6 +12,7 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <filesystem>
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1.h>
@@ -25,6 +27,7 @@
 #define TRACKING_ON  // ON: Tracking
 
 using namespace std;
+namespace fs = filesystem;
 
 void SkipOrNot(int IP_max, double dTS_KAL[12], double dTS_NIM,
   double minValue, double maxValue,
@@ -151,13 +154,53 @@ void SetMargins(Double_t top = 0.10, Double_t right = 0.15, Double_t bottom = 0.
 
 void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
   const string & path = "test", bool ONLINE_FLAG = false) {
+
+  //===== Define Input =====
+  string ifname_nimtdc;
+  ifstream rawdata_nimtdc;
+  string ifname[12];
+  TString ofname;
+  ifstream rawdata[12];
+  ofstream outfile("./txt/ThDAC.txt");
+  ofstream ofNevent(Form("./txt/Nevent_run%d.txt", runN));
+  ofstream ofEvtMatch(Form("./txt/EvtMatch_run%d.txt", runN));
+
+  //===== Open Rawdata =====
+  //====== NIM-TDC ======
+  int NIM_IP = 16;
+  if (fNIM) {
+    if (runN < 10)       ifname_nimtdc = Form("../RAW/%s/MSE00000%d_192.168.10.%d.rawdata", path.c_str(), runN, NIM_IP);
+    else if (runN < 100) ifname_nimtdc = Form("../RAW/%s/MSE0000%d_192.168.10.%d.rawdata",  path.c_str(), runN, NIM_IP);
+    else                 ifname_nimtdc = Form("../RAW/%s/MSE000%d_192.168.10.%d.rawdata",   path.c_str(), runN, NIM_IP);
+    rawdata_nimtdc.open(ifname_nimtdc.c_str());
+    if (!rawdata_nimtdc) {
+      cout << "Unable to open file: " << ifname_nimtdc << endl;
+      exit(1); // terminate with error
+    }
+  }
+  //===== Kalliope =====
+  std::vector<int> vecIP;
+  TString pattern;
+  if (runN < 10)       pattern = Form("MSE00000%d_192.168.10.", runN);
+  else if (runN < 100) pattern = Form("MSE0000%d_192.168.10.", runN);
+  else                 pattern = Form("MSE000%d_192.168.10.", runN);
+
+  for (const auto& entry : fs::directory_iterator(Form("../RAW/%s", path.c_str()))) {
+      TString filename = entry.path().filename().string();
+      if (filename.Contains(pattern) && filename.EndsWith(".rawdata")) {
+          int IP;
+          sscanf(filename.Data() + filename.Last('_') + 1, "192.168.10.%d.rawdata", &IP); // IP を抽出
+          vecIP.push_back(IP);
+      }
+  }
+
+  vecIP.erase(remove(vecIP.begin(), vecIP.end(), NIM_IP), vecIP.end());
+  cout << vecIP.begin() << ", " << vecIP.end() << endl;
   
   if (IP_max == 0) IP_max = 12; // 0:Experiment mode, KALliope x12
   //======================================
   //===== NIM-TDC (IP=16 (default)) ======
   //======================================
-  string ifname_nimtdc;
-  ifstream rawdata_nimtdc;
   int N_NIM_event = 0, N_NIM_Sync = 0, N_NIM_Sync_Interval = 0, N_NIM_Last = 0, N_NIM_LOS = 0;
   int N_NIM_Last2 = 0;
   // NIM-TDC serve as the reference TimeStamp due to its small time fluctuation
@@ -170,17 +213,6 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
   int Traw_NIM_L_valid[32] = {}, Traw_NIM_T_valid[32] = {};
   int Traw_NIM_num[2][32] = {};
   int T_UP = 0, T_DOWN, T_FORWARD = 0, T_BACKWARD = 0;
-
-  //======================================
-  //===== Kalliope (IP=1-12) =============
-  //======================================
-  //===== Define Input/Output File =====
-  string ifname[12];
-  TString ofname;
-  ifstream rawdata[12];
-  ofstream outfile("./txt/ThDAC.txt");
-  ofstream ofNevent(Form("./txt/Nevent_run%d.txt", runN));
-  ofstream ofEvtMatch(Form("./txt/EvtMatch_run%d.txt", runN));
 
   int N_event[12] = {};
   vector < int > N_Sync_Interval(IP_max, 0), N_KAL_Last(IP_max, 0), N_KAL_LOS(IP_max, 0);
@@ -242,30 +274,7 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
   cout << TOT_Noise_KAL[0] << TOT_Noise_KAL[1] << endl;
   int N_track = 0;
 
-  //===== Open Rawdata =====
-  //====== NIM-TDC ======
-  if (fNIM) {
-    if (runN < 10) ifname_nimtdc = Form("../RAW/%s/MSE00000%d_192.168.10.16.rawdata", path.c_str(), runN);
-    else if (runN < 100) ifname_nimtdc = Form("../RAW/%s/MSE0000%d_192.168.10.16.rawdata", path.c_str(), runN);
-    else ifname_nimtdc = Form("../RAW/%s/MSE000%d_192.168.10.16.rawdata", path.c_str(), runN);
-    rawdata_nimtdc.open(ifname_nimtdc.c_str());
-    if (!rawdata_nimtdc) {
-      cout << "Unable to open file: " << ifname_nimtdc << endl;
-      exit(1); // terminate with error
-    }
-  }
-  //===== Kalliope =====
-  for (int i = 0; i < IP_max; i++) {
-    int IP = i + 1;
-    if (runN < 10) ifname[i] = Form("../RAW/%s/MSE00000%d_192.168.10.%d.rawdata", path.c_str(), runN, IP);
-    else if (runN < 100) ifname[i] = Form("../RAW/%s/MSE0000%d_192.168.10.%d.rawdata", path.c_str(), runN, IP);
-    else ifname[i] = Form("../RAW/%s/MSE000%d_192.168.10.%d.rawdata", path.c_str(), runN, IP);
-    rawdata[i].open(ifname[i].c_str());
-    if (!rawdata[i]) {
-      cout << "Unable to open file: " << ifname[i] << endl;
-      exit(1); // terminate with error
-    }
-  }
+  //===== ROOT file output =====
   if (runN < 10) ofname       = Form("../ROOT/%s/MSE00000%d.root", path.c_str(), runN);
   else if (runN < 100) ofname = Form("../ROOT/%s/MSE0000%d.root", path.c_str(), runN);
   else ofname                 = Form("../ROOT/%s/MSE000%d.root", path.c_str(), runN);
