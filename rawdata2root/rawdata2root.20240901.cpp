@@ -153,7 +153,7 @@ void SetMargins(Double_t top = 0.10, Double_t right = 0.15, Double_t bottom = 0.
 }
 
 void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
-  const string & path = "test", bool ONLINE_FLAG = false, bool SCAN_FLAG = false) {
+  const string & path = "test", bool ONLINE_FLAG = false, bool SCAN_FLAG = false, int SCAN_N = 0) {
 
   //===== Define Input =====
   string ifname_nimtdc;
@@ -162,6 +162,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   TString ofname;
   ifstream rawdata[12];
   ofstream outfile("./txt/ThDAC.txt");
+	ofstream noisefile(Form("./TXT/%s/MSE%06d_%02d.csv", path.c_str(), runN, SCAN_N));
   ofstream ofNevent(Form("./txt/Nevent_run%d.txt", runN));
   ofstream ofEvtMatch(Form("./txt/EvtMatch_run%d.txt", runN));
 
@@ -184,6 +185,12 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   if (runN < 10)       base_name = Form("MSE00000%d_192.168.10.", runN);
   else if (runN < 100) base_name = Form("MSE0000%d_192.168.10.", runN);
   else                 base_name = Form("MSE000%d_192.168.10.", runN);
+
+	if (SCAN_FLAG) {
+    if (runN < 10)       base_name = Form("MSE00000%d_%02d_192.168.10.", runN, SCAN_N);
+    else if (runN < 100) base_name = Form("MSE0000%d_%02d_192.168.10.",  runN, SCAN_N);
+    else                 base_name = Form("MSE000%d_%02d_192.168.10.",   runN, SCAN_N);
+	}
 
   //if (SCAN_FLAG) base_name = "0" + base_name;
 
@@ -302,6 +309,11 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   if (runN < 10) ofname       = Form("../ROOT/%s/MSE00000%d.root", path.c_str(), runN);
   else if (runN < 100) ofname = Form("../ROOT/%s/MSE0000%d.root", path.c_str(), runN);
   else ofname                 = Form("../ROOT/%s/MSE000%d.root", path.c_str(), runN);
+  if (SCAN_FLAG) {
+    if (runN < 10) ofname       = Form("../ROOT/%s/MSE00000%d_%02d.root", path.c_str(), runN, SCAN_N);
+    else if (runN < 100) ofname = Form("../ROOT/%s/MSE0000%d_%02d.root",  path.c_str(), runN, SCAN_N);
+    else ofname                 = Form("../ROOT/%s/MSE000%d_%02d.root",   path.c_str(), runN, SCAN_N);
+	}
   cout << "create root file :" << ofname << endl;
 
   TFile * f = new TFile(ofname, "RECREATE");
@@ -310,9 +322,14 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
   //===== Statistics file =====
   TString stat_name;
-  if (runN < 10) stat_name = Form("../ROOT/%s/MSE00000%d.html", path.c_str(), runN);
-  else if (runN < 100) stat_name = Form("../ROOT/%s/MSE0000%d.html", path.c_str(), runN);
-  else stat_name = Form("../ROOT/%s/MSE000%d.html", path.c_str(), runN);
+  if (runN < 10) stat_name       = Form("../ROOT/%s/MSE00000%d.html", path.c_str(), runN, SCAN_N);
+  else if (runN < 100) stat_name = Form("../ROOT/%s/MSE0000%d.html",  path.c_str(), runN, SCAN_N);
+  else stat_name                 = Form("../ROOT/%s/MSE000%d.html",   path.c_str(), runN, SCAN_N);
+  if (SCAN_FLAG) {
+    if (runN < 10) stat_name       = Form("../ROOT/%s/MSE00000%d_%02d.html", path.c_str(), runN, SCAN_N);
+    else if (runN < 100) stat_name = Form("../ROOT/%s/MSE0000%d_%02d.html",  path.c_str(), runN, SCAN_N);
+    else stat_name                 = Form("../ROOT/%s/MSE000%d_%02d.html",   path.c_str(), runN, SCAN_N);
+	}
   std::ofstream stat_file(stat_name);
 
   stat_file << "<!DOCTYPE html>\n";
@@ -623,6 +640,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
       }
   }
 
+
   bool Skip_NIM = false, Stop_NIM = false;
   bool Skip_KAL[12] = {
     false
@@ -843,6 +861,9 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
               TS_diff[nIP] = TS_KAL[nIP] - TS_NIM;
               dTS_diff[nIP] = dTS_KAL[nIP] - dTS_NIM;
             } else {
+              TS_NIM = TS_KAL[0];
+              dTS_NIM = dTS_KAL[0];
+							N_NIM_event = N_event[0];
               TS_diff[nIP] = TS_KAL[nIP] - TS_KAL[0];
               dTS_diff[nIP] = dTS_KAL[nIP] - dTS_KAL[0];
             }
@@ -978,7 +999,6 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
           }
       }
       if (SYNC_ONLINE_FLAG_All) {
-        cout << "hogehoge" << endl;
         for (size_t nIP = 0; nIP < N_IP; nIP++) {
           Stop_KAL[nIP] = false;
           N_event[nIP] = 0;
@@ -1022,7 +1042,6 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
     bool ftemp = (N_event[0] == 2);
     if (ONLINE_FLAG) ftemp &= SYNC_ONLINE_FLAG_All; 
-
     
     if (ftemp) {
         TString title = Form("Data path: %s | runN: %d", path.c_str(), runN);
@@ -1813,6 +1832,31 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
     rawdata[nIP].close();
   }
 
+  //ofNevent << setw(10) << "DAQ"
+	//   << ", " << setw(10) << "N_event"
+	//   << ", " << setw(10) << "N_Trigger"
+	//   << ", " << setw(10) << "N_Sync(x2)"
+	//   << ", " << setw(15) << "Last Trig. No."
+	//   << ", " << setw(15) << "Last Trig.2 No."
+	//   << ", " << setw(10) << "LOS FLAG" << endl;
+  //ofNevent << setw(10) << "NIM-TDC"
+	//   << ", " << setw(10) << N_NIM_event
+	//   << ", " << setw(10) << N_NIM_event - N_NIM_Sync * 2
+	//   << ", " << setw(10) << N_NIM_Sync * 2
+	//   << ", " << setw(15) << N_NIM_Last
+	//   << ", " << setw(15) << N_NIM_Last2
+	//   << ", " << setw(10) << N_NIM_LOS << endl;  
+
+  //for(int IP=0;IP<N_IP;IP++){
+  //  ofNevent << setw(10) << Form("Kalliope %d", IP)
+	//     << ", " << setw(10) << N_event[IP]
+	//   << ", " << setw(10) << N_NIM_event - N_NIM_Sync * 2
+	//   << ", " << setw(10) << N_NIM_Sync * 2
+	//   << ", " << setw(15) << N_NIM_Last
+	//   << ", " << setw(15) << N_NIM_Last2
+	//     << ", " << setw(10) << N_KAL_LOS[IP] << endl;  
+  //}
+
   double Texe_total = RunTimer.RealTime();
   double rate_exe = N_event[0] / Texe_total;
   RunTimer.Stop();
@@ -1843,7 +1887,30 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   cout << "--------------------------------------------------------------------------------" << endl;
   cout << endl;
 
-  for (int ii = 0; ii < N_IP; ii++) for (int jj = 0; jj < 32; jj++) cout << vecIP[ii] << " | ch" << jj << ": " << (double) KalNum[ii][jj] / TS_NIM << endl;
+  cout << "--------------------------------------------------------------------------------" << endl;
+  cout << "------ Number of Hits ----------------------------------------------------------" << endl;
+  cout << "--------------------------------------------------------------------------------" << endl;
+	cout << "  ";
+  for (int jj = 0; jj < 32; jj++) cout << Form(",%4d", jj);
+	cout << endl;
+  for (int ii = 0; ii < N_IP; ii++) {
+			cout << Form("%2d", vecIP[ii]);
+			noisefile << Form("%2d, ", vecIP[ii]); 
+			for (int jj = 0; jj < 32; jj++) {
+          double value = KalNum[ii][jj] / TS_NIM;
+          int exponent = value == 0 ? 0 : (int) floor(log10(value));
+          double mantissa = value / pow(10, exponent);
+					if(exponent < 0) {
+							mantissa = 0;
+							exponent = 0;
+					}
+          cout      << Form(", %1.0fe%d", mantissa, exponent);
+          noisefile << Form("%1.0fe%d", mantissa, exponent);
+					if (jj < 31) noisefile << ", ";
+			}
+			cout << endl;
+			noisefile << endl;
+	}
 
   stat_file << "            </tr>\n";
   stat_file << "        </table>\n";
@@ -1865,7 +1932,9 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 }
 
 void ThDACScan(int runN, int N_IP = 0, bool fNIM = 0, bool ftree = 0, const string & path = "test", bool ONLINE_FLAG = true) {
-  rawdata2root(runN, N_IP, fNIM, ftree, path, ONLINE_FLAG);
+  for (int ii = 0; ii < 16; ii++) {
+    rawdata2root(runN, N_IP, fNIM, ftree, path, ONLINE_FLAG, true, ii);
+	}
 }
 
 void Check_CH_Setting() {

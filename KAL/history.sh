@@ -1,9 +1,9 @@
 #!/bin/bash
-choice=0
-fNIM=1
+choice=1
+fNIM=0
 ftree=0
 path_choice="prompt"
-runN=16
+runN=1
 selected_dir="../RAW/NOISE/"
-runN_choice="10"
+runN_choice="0"
 ONLINE_FLAG=0
