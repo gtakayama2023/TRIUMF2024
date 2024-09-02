@@ -1,9 +1,9 @@
 #!/bin/bash
 choice=0
 fNIM=1
-ftree=1
+ftree=0
 path_choice="prompt"
-runN=7
-selected_dir="../RAW/test_0808/"
-runN_choice="0"
-ONLINE_FLAG=1
+runN=16
+selected_dir="../RAW/NOISE/"
+runN_choice="10"
+ONLINE_FLAG=0

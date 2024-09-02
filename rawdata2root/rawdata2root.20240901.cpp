@@ -153,7 +153,7 @@ void SetMargins(Double_t top = 0.10, Double_t right = 0.15, Double_t bottom = 0.
 }
 
 void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
-  const string & path = "test", bool ONLINE_FLAG = false) {
+  const string & path = "test", bool ONLINE_FLAG = false, bool SCAN_FLAG = false) {
 
   //===== Define Input =====
   string ifname_nimtdc;
@@ -184,6 +184,8 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   if (runN < 10)       base_name = Form("MSE00000%d_192.168.10.", runN);
   else if (runN < 100) base_name = Form("MSE0000%d_192.168.10.", runN);
   else                 base_name = Form("MSE000%d_192.168.10.", runN);
+
+  //if (SCAN_FLAG) base_name = "0" + base_name;
 
 	DIR *dir;
 	struct dirent *entry;
@@ -270,6 +272,8 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   int Traw_KAL_L_valid[12][32], Traw_KAL_T_valid[12][32];
   int Traw_KAL_num[12][2][32] = {}; // Malitiplicity of [Kalliope IP][L/Tr][CH]
   int Traw_KAL_num_total[12][2][32] = {}; // Malitiplicity of [Kalliope IP][L/Tr][CH]
+
+  int KalNum[12][32] = {0};
 
   int N_02event = 0;
   int hitNmax = 10; // Multiplicity Max
@@ -886,6 +890,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
               Traw_KAL_num[nIP][0][ch]++;
               Traw_KAL_num_total[nIP][0][ch]++;
             }
+	    KalNum[nIP][ch]++;
           }
           if (Header == 4) { // Trailing Edge (0x04 event)
             ch = (data >> 16) & 0x000000ff;
@@ -1837,6 +1842,8 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   cout << "Trackable Event Ratio  : " << Form("%6.1f", rate_track * 100) << " %      " << endl;
   cout << "--------------------------------------------------------------------------------" << endl;
   cout << endl;
+
+  for (int ii = 0; ii < N_IP; ii++) for (int jj = 0; jj < 32; jj++) cout << vecIP[ii] << " | ch" << jj << ": " << (double) KalNum[ii][jj] / TS_NIM << endl;
 
   stat_file << "            </tr>\n";
   stat_file << "        </table>\n";
