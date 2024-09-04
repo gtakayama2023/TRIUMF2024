@@ -1,1 +1,0 @@
-buildlibrary.cxxflags: -std=c++17

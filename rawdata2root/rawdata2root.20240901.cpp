@@ -162,10 +162,10 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   TString ofname;
   ifstream rawdata[12];
   ofstream outfile("./txt/ThDAC.txt");
-	ofstream noisefile(Form("./TXT/%s/MSE%06d_%02d.csv", path.c_str(), runN, SCAN_N));
+  ofstream noisefile(Form("./TXT/%s/MSE%06d_%02d.csv", path.c_str(), runN, SCAN_N));
   ofstream ofNevent(Form("./txt/Nevent_run%d.txt", runN));
   ofstream ofEvtMatch(Form("./txt/EvtMatch_run%d.txt", runN));
-
+  cout << Form("./TXT/%s/MSE%06d_%02d.csv", path.c_str(), runN, SCAN_N) << endl;
   //===== Open Rawdata =====
   //====== NIM-TDC ======
   int IP_NIM = 16;
@@ -863,7 +863,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
             } else {
               TS_NIM = TS_KAL[0];
               dTS_NIM = dTS_KAL[0];
-							N_NIM_event = N_event[0];
+              N_NIM_event = N_event[0];
               TS_diff[nIP] = TS_KAL[nIP] - TS_KAL[0];
               dTS_diff[nIP] = dTS_KAL[nIP] - dTS_KAL[0];
             }
@@ -1897,7 +1897,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 			cout << Form("%2d", vecIP[ii]);
 			noisefile << Form("%2d, ", vecIP[ii]); 
 			for (int jj = 0; jj < 32; jj++) {
-          double value = KalNum[ii][jj] / TS_NIM;
+          double value = KalNum[ii][jj] / 4.;
           int exponent = value == 0 ? 0 : (int) floor(log10(value));
           double mantissa = value / pow(10, exponent);
 					if(exponent < 0) {
