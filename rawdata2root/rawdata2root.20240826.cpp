@@ -541,7 +541,7 @@ void rawdata2root(int runN = 10, int IP_max = 0, bool fNIM = 0, bool ftree = 0,
 
   // Data size to read in Online mode
   //const size_t READ_SIZE_NIM = 1 * 1024 * 1024 ;  
-  const size_t READ_SIZE_NIM = 50 * 1024 ;  
+  const size_t READ_SIZE_NIM = 500 * 1024 ;  
 
   // NIMのファイルサイズを取得
   rawdata_nimtdc.seekg(0, ios::end);
