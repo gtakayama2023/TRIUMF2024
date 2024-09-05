@@ -52,7 +52,7 @@ if [ "$#" -gt 0 ]; then
     fi
 else
     echo "Please type the number corresponding to what you want to do:"
-    echo "0: Test rawdata2root"
+    echo "0: Run rawdata2root"
     echo "1: ThDACScan"
     echo "2: PlotAllHist"
     echo "3: Check Channel Setting"

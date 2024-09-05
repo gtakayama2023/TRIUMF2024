@@ -1,4 +1,4 @@
-//************************************************************************
+0;276;0c11;rgb:0000/0000/000011;rgb:0000/0000/0000//************************************************************************
 //    Kalliope, NIM-TDC Rawdata to Root for #M9999 @TRIUMF
 //    edit by S.Ishitani (Osaka University), 2024.08.10
 //************************************************************************
@@ -155,6 +155,13 @@ void SetMargins(Double_t top = 0.10, Double_t right = 0.15, Double_t bottom = 0.
 void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   const string & path = "test", bool ONLINE_FLAG = false, bool SCAN_FLAG = false, int SCAN_N = 0) {
 
+  bool KAL_ONLINE_FLAG = false;
+
+  if (path.c_str() == std::string("KAL_ONLINE")) {
+    KAL_ONLINE_FLAG = true;
+  }
+  cout << "KAL_ONLINE_FLAG: " << KAL_ONLINE_FLAG << endl;
+
   //===== Define Input =====
   string ifname_nimtdc;
   ifstream rawdata_nimtdc;
@@ -166,13 +173,15 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   ofstream ofNevent(Form("./txt/Nevent_run%d.txt", runN));
   ofstream ofEvtMatch(Form("./txt/EvtMatch_run%d.txt", runN));
   cout << Form("./TXT/%s/MSE%06d_%02d.csv", path.c_str(), runN, SCAN_N) << endl;
+
+  if (SCAN_FLAG) fNIM = 0;
+  cout << "SCANFLAG : " << SCAN_FLAG << endl;
+  cout << "fNIM: " << fNIM << endl;
   //===== Open Rawdata =====
   //====== NIM-TDC ======
   int IP_NIM = 16;
   if (fNIM) {
-    if (runN < 10)       ifname_nimtdc = Form("../RAW/%s/MSE00000%d_192.168.10.%d.rawdata", path.c_str(), runN, IP_NIM);
-    else if (runN < 100) ifname_nimtdc = Form("../RAW/%s/MSE0000%d_192.168.10.%d.rawdata",  path.c_str(), runN, IP_NIM);
-    else                 ifname_nimtdc = Form("../RAW/%s/MSE000%d_192.168.10.%d.rawdata",   path.c_str(), runN, IP_NIM);
+    ifname_nimtdc = Form("../RAW/%s/MSE%06d_192.168.10.%d.rawdata",   path.c_str(), runN, IP_NIM);
     rawdata_nimtdc.open(ifname_nimtdc.c_str());
     if (!rawdata_nimtdc) {
       cout << "Unable to open file: " << ifname_nimtdc << endl;
@@ -227,6 +236,11 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
     cout << ifname[ii] << endl;
   }
 
+  if (!fNIM) {
+    rawdata_nimtdc.open(ifname[0].c_str());
+    fNIM = true;
+  }
+
   //======================================
   //===== NIM-TDC (IP=16 (default)) ======
   //======================================
@@ -241,8 +255,8 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   int Traw_NIM_L[32][10] = {}, Traw_NIM_T[32][10] = {}, Traw_NIM_TOT[32][10] = {};
   int Traw_NIM_L_valid[32] = {}, Traw_NIM_T_valid[32] = {};
   int Traw_NIM_num[2][32] = {};
-  int T_UP = 0, T_DN, T_FORWARD = 0, T_BACKWARD = 0;
-  
+  int T_BACKWARD = 0, T_FORWARD = 0, T_UP = 0, T_DN = 0;
+
   int N_event[12] = {};
   vector < int > N_Sync_Interval(N_IP, 0), N_KAL_Last(N_IP, 0), N_KAL_LOS(N_IP, 0);
   vector < int > N_KAL_Last2(N_IP, 0);
@@ -463,11 +477,11 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
   //===== Histgram for Rawdata =====
   // TDC-Leading
-  //vector < TH1F * > hNIM_L;
-  //hNIM_L.resize(32);
-  //for (int jj = 0; jj < 32; jj++) {
-  //  hNIM_L[jj] = new TH1F(Form("hTDC_L_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TDC}_{Leading}; #it{TDC}_{Leading} [ns]; #it{counts}", jj), 1e3, -1e3, 7e4);
-  //}
+  vector < TH1F * > hNIM_L;
+  hNIM_L.resize(4);
+  for (int jj = 0; jj < 4; jj++) {
+    hNIM_L[jj] = new TH1F(Form("hTDC_L_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TDC}_{Leading}; #it{TDC}_{Leading} [ns]; #it{counts}", jj), 1e3, -1e3, 7e4);
+  }
   //vector < vector < TH1F * >> hKAL_L;
   //hKAL_L.resize(N_IP);
   //for (int ii = 0; ii < N_IP; ii++) {
@@ -591,11 +605,19 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
   // Data size to read in Online mode
   //const size_t READ_SIZE_NIM = 1 * 1024 * 1024 ;  
-  const size_t READ_SIZE_NIM = 2 * 1024 * 1024 ;  
+  size_t READ_SIZE_NIM = 50 * 1000 * 1024 ;  
 
   // NIMのファイルサイズを取得
   rawdata_nimtdc.seekg(0, ios::end);
   streampos fsize_nimtdc = rawdata_nimtdc.tellg(); // NIM-TDCのファイルサイズを定義
+
+  if (!ONLINE_FLAG) {
+    READ_SIZE_NIM = fsize_nimtdc * 0.90;
+    READ_SIZE_NIM = ( READ_SIZE_NIM / 1024 ) * 1024;
+    ONLINE_FLAG = true;
+          //start_pos = (start_pos / 1024) * 1024; // 1024単位に調整
+  }
+
   
   // READ_RATIO をループの外で宣言
   double READ_RATIO = 1.0;
@@ -950,7 +972,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
             if (breakOK) break;
           }
         }
-
+	
         //====== EOF FLAG -> Stop Reading Rawdata  =====
         if (rawdata[nIP].eof()) {
           //cout << "reach end of loop" << endl;
@@ -1019,9 +1041,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
         "Count Rate : " << (int) rate << " cps, " <<
         "Reading    : " << N_event[0] << flush << " events" << "\r";
     }
-    #ifdef TEST_ON
-    if (NEVE > 10) break;
-    #endif
+    if (KAL_ONLINE_FLAG) if (N_event[0] > 1000) break;
 
     //====== Filling Histgrams for Rawdata =====
     for (int i = 0; i < 12; i++) {
@@ -1121,7 +1141,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
       for (int ii = 0; ii < 32; ii++) {
         for (int jj = 0; jj < hitNmax; jj++) {
-          //hNIM_L[ii] -> Fill(Traw_NIM_L[ii][jj]);
+          if (ii < 4) hNIM_L[ii] -> Fill(Traw_NIM_L[ii][jj]);
           //hNIM_T[ii] -> Fill(Traw_NIM_T[ii][jj]);
           //hNIM_TOT[ii] -> Fill(Traw_NIM_TOT[ii][jj]);
           hNIM_L2 -> Fill(ii, Traw_NIM_L[ii][jj]);
@@ -1343,18 +1363,17 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   cNIM_L2 -> cd(1) -> Update();
   cNIM_L2 -> Write();
 
-  /*
   vector < TF1 * > fNIM_L;
-  fNIM_L.resize(32);
-  for (int jj = 0; jj < 32; jj++) {
+  fNIM_L.resize(4);
+  for (int jj = 0; jj < 4; jj++) {
     fNIM_L[jj] = new TF1(Form("fNIM_ch%02d", jj), "[0] + [1] * exp(-[2] * x)", 2e3, 70e3);
     fNIM_L[jj] -> SetParameters(2, 5, 4.5e-4);
     if (jj == 1) hNIM_L[jj] -> Fit(fNIM_L[jj], "L", "", 2e3, 70e3);
   }
   TCanvas * cNIM_L;
   cNIM_L = new TCanvas(Form("cNIM_L"), Form("cNIM_L"), 1200, 600);
-  cNIM_L -> Divide(8, 4);
-  for (int jj = 0; jj < 32; jj++) {
+  cNIM_L -> Divide(2, 2);
+  for (int jj = 0; jj < 4; jj++) {
     cNIM_L -> cd(jj + 1);
     SetMargins();
     hNIM_L[jj] -> Draw("");
@@ -1365,7 +1384,58 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
     cNIM_L -> cd(jj + 1) -> Update();
   }
   cNIM_L -> Write();
-  */
+
+  // 新しいヒストグラムの作成
+TH1D* Assym_FB = new TH1D("Assym_FB", "Assym_FB", hNIM_L[0]->GetNbinsX(), 2e3, 70e3);
+TH1D* Assym_UD = new TH1D("Assym_UD", "Assym_UD", hNIM_L[0]->GetNbinsX(), 2e3, 70e3);
+
+// ビンごとの演算とヒストグラムへのフィリング
+for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
+    double value1_0 = hNIM_L[0]->GetBinContent(bin);
+    double value1_1 = hNIM_L[1]->GetBinContent(bin);
+    double value2_0 = hNIM_L[2]->GetBinContent(bin);
+    double value2_1 = hNIM_L[3]->GetBinContent(bin);
+
+    double error1_0 = sqrt(value1_0);
+    double error1_1 = sqrt(value1_1);
+    double error2_0 = sqrt(value2_0);
+    double error2_1 = sqrt(value2_1);
+
+    // Assym_FB の計算とフィリング
+    if (value1_0 + value1_1 != 0) {
+        double assym_fb = (value1_0 - value1_1) / (value1_0 + value1_1);
+        double error_fb = sqrt((4 * value1_0 * value1_1) / pow(value1_0 + value1_1, 3));
+        Assym_FB->SetBinContent(bin, assym_fb);
+        Assym_FB->SetBinError(bin, error_fb);
+    }
+
+    // Assym_UD の計算とフィリング
+    if (value2_0 + value2_1 != 0) {
+        double assym_ud = (value2_0 - value2_1) / (value2_0 + value2_1);
+        double error_ud = sqrt((4 * value2_0 * value2_1) / pow(value2_0 + value2_1, 3));
+        Assym_UD->SetBinContent(bin, assym_ud);
+        Assym_UD->SetBinError(bin, error_ud);
+    }
+}
+
+TCanvas * cAssym = new TCanvas(Form("cAssym"), Form("cAssym"), 1200, 600);
+cAssym -> Divide(2,1);
+cAssym -> cd(1);
+SetMargins();
+Assym_FB->Draw("E");  // "E" オプションを追加してエラーバーを表示
+gPad -> SetLogy(0);
+gPad -> Update();
+cAssym -> cd(1) -> Modified();
+cAssym -> cd(1) -> Update();
+cAssym -> cd(2);
+SetMargins();
+Assym_UD->Draw("E same");  // "E" オプションを追加してエラーバーを表示
+gPad -> SetLogy(0);
+gPad -> Update();
+cAssym -> cd(2) -> Modified();
+cAssym -> cd(2) -> Update();
+cAssym -> Write();
+
 
   //Kalliope
   TCanvas * cKAL_L2 = new TCanvas(Form("cKAL_L2"), Form("cKAL_L2"), 1200, 600);
@@ -1897,7 +1967,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 			cout << Form("%2d", vecIP[ii]);
 			noisefile << Form("%2d, ", vecIP[ii]); 
 			for (int jj = 0; jj < 32; jj++) {
-          double value = KalNum[ii][jj] / 4.;
+          double value = KalNum[ii][jj] / Trun_total;
           int exponent = value == 0 ? 0 : (int) floor(log10(value));
           double mantissa = value / pow(10, exponent);
 					if(exponent < 0) {
@@ -1905,7 +1975,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 							exponent = 0;
 					}
           cout      << Form(", %1.0fe%d", mantissa, exponent);
-          noisefile << Form("%1.0fe%d", mantissa, exponent);
+          noisefile << Form("%6.2f", value);
 					if (jj < 31) noisefile << ", ";
 			}
 			cout << endl;

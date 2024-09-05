@@ -166,6 +166,10 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   ofstream ofNevent(Form("./txt/Nevent_run%d.txt", runN));
   ofstream ofEvtMatch(Form("./txt/EvtMatch_run%d.txt", runN));
   cout << Form("./TXT/%s/MSE%06d_%02d.csv", path.c_str(), runN, SCAN_N) << endl;
+
+  if (SCAN_FLAG) fNIM = 0;
+  cout << "SCANFLAG : " << SCAN_FLAG << endl;
+  cout << "fNIM: " << fNIM << endl;
   //===== Open Rawdata =====
   //====== NIM-TDC ======
   int IP_NIM = 16;
@@ -227,6 +231,11 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
     cout << ifname[ii] << endl;
   }
 
+  if (!fNIM) {
+    rawdata_nimtdc.open(ifname[0].c_str());
+    fNIM = true;
+  }
+
   //======================================
   //===== NIM-TDC (IP=16 (default)) ======
   //======================================
@@ -241,7 +250,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   int Traw_NIM_L[32][10] = {}, Traw_NIM_T[32][10] = {}, Traw_NIM_TOT[32][10] = {};
   int Traw_NIM_L_valid[32] = {}, Traw_NIM_T_valid[32] = {};
   int Traw_NIM_num[2][32] = {};
-  int T_UP = 0, T_DN, T_FORWARD = 0, T_BACKWARD = 0;
+  int T_BACKWARD = 0, T_FORWARD = 0, T_UP = 0, T_DN = 0;
 
   int N_event[12] = {};
   vector < int > N_Sync_Interval(N_IP, 0), N_KAL_Last(N_IP, 0), N_KAL_LOS(N_IP, 0);
@@ -591,7 +600,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
   // Data size to read in Online mode
   //const size_t READ_SIZE_NIM = 1 * 1024 * 1024 ;  
-  const size_t READ_SIZE_NIM = 2 * 1024 * 1024 ;  
+  size_t READ_SIZE_NIM = 100 * 1024 ;  
 
   // NIMのファイルサイズを取得
   rawdata_nimtdc.seekg(0, ios::end);
@@ -950,7 +959,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
             if (breakOK) break;
           }
         }
-
+	
         //====== EOF FLAG -> Stop Reading Rawdata  =====
         if (rawdata[nIP].eof()) {
           //cout << "reach end of loop" << endl;
@@ -1897,7 +1906,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 			cout << Form("%2d", vecIP[ii]);
 			noisefile << Form("%2d, ", vecIP[ii]); 
 			for (int jj = 0; jj < 32; jj++) {
-          double value = KalNum[ii][jj] / 4.;
+          double value = KalNum[ii][jj] / Trun_total;
           int exponent = value == 0 ? 0 : (int) floor(log10(value));
           double mantissa = value / pow(10, exponent);
 					if(exponent < 0) {
@@ -1905,7 +1914,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 							exponent = 0;
 					}
           cout      << Form(", %1.0fe%d", mantissa, exponent);
-          noisefile << Form("%1.0fe%d", mantissa, exponent);
+          noisefile << Form("%6.2f", value);
 					if (jj < 31) noisefile << ", ";
 			}
 			cout << endl;
