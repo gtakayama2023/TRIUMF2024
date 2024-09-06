@@ -262,7 +262,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   // wo/NIM-TDC, Kalliope IP=0 serve as the ref. TimeStamp
   double TS_NIM_0 = 0.0, TS_NIM = 0.0, dTS_NIM = 0.0, TS_NIM_pre = 0.0;
   double TS_NIM_Sync = 0.0; //, dTS_NIM_Sync = 0.0, TS_NIM_Sync_pre = 0.0;
-  vector < double > dTS_NIM_seq;
+  vector < double > dTS_NIM_chain;
   int Keyword = -1;
   int Traw_NIM_L[32][10] = {}, Traw_NIM_T[32][10] = {}, Traw_NIM_TOT[32][10] = {};
   int Traw_NIM_L_valid[32] = {}, Traw_NIM_T_valid[32] = {};
@@ -278,7 +278,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
     0.
   }, TS_KAL_pre[12], TS_KAL_Sync[12];
   vector < double > TS_diff(N_IP, 0.0), dTS_diff(N_IP, 0.0);
-  vector< vector < double > > dTS_KAL_seq(12);
+  vector< vector < double > > dTS_KAL_chain(12);
 
   int time_L = -999, time_T = 999;
 
@@ -638,12 +638,13 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   // NIMのファイルサイズを取得
   rawdata_nimtdc.seekg(0, ios::end);
   streampos fsize_nimtdc = rawdata_nimtdc.tellg(); // NIM-TDCのファイルサイズを定義
+  bool notONLINE_FLAG = false;
 
   if (!ONLINE_FLAG) {
-    READ_SIZE_NIM = fsize_nimtdc * 0.95;
+    READ_SIZE_NIM = static_cast<double>(fsize_nimtdc) - 10 * 1024;
     READ_SIZE_NIM = ( READ_SIZE_NIM / 1024 ) * 1024;
     ONLINE_FLAG = true;
-          //start_pos = (start_pos / 1024) * 1024; // 1024単位に調整
+    notONLINE_FLAG = true;
   }
   
   // READ_RATIO をループの外で宣言
@@ -660,7 +661,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
       rawdata_nimtdc.seekg(start_pos_nimtdc, ios::beg);
       cout << "NIM-TDC Read Ratio: " << READ_RATIO << ", Start Position: " << start_pos_nimtdc << endl;
   } else {
-      fsize_nimtdc = fsize_nimtdc / 4; // ファイルサイズを32ビット単位に変換
+      fsize_nimtdc = fsize_nimtdc / 4; 
       rawdata_nimtdc.seekg(0, ios::beg);
       cout << Form("rawdata_NIM-TDC filesize : ") << fsize_nimtdc << endl;
   }
@@ -680,15 +681,17 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
           double KAL_RATIO = READ_RATIO * 0.9;
           streampos start_pos = fsize * KAL_RATIO;
           start_pos = (start_pos / 1024) * 1024; // 1024単位に調整
+	  if (notONLINE_FLAG) start_pos = 0;
   
           rawdata[nIP].seekg(start_pos, ios::beg); // 読み始める位置へ移動
           cout << "Kalliope " << vecIP[nIP] << " Read Ratio: " << KAL_RATIO << ", Start Position: " << start_pos << endl;
       } else {
-          fsize = fsize / 4; // ファイルサイズを32ビット単位に変換
+          fsize = fsize / 4; 
           rawdata[nIP].seekg(0, ios::beg); // ファイルの最初から読み込む
           cout << Form("rawdata%d filesize: ", vecIP[nIP]) << fsize << endl;
       }
   }
+  ONLINE_FLAG = true;
 
   bool Skip_NIM = false, Stop_NIM = false;
   bool Skip_KAL[12] = {
@@ -700,8 +703,8 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   double SkipN = 0;
 
   // Online mode
-  int LOAD_N = 3;
-  bool LOAD_N_FLAG_NIM = true;
+  int N_chain = 3;
+  bool N_chain_FLAG_NIM = true;
   bool SYNC_ONLINE_FLAG[12] = {false};
   bool SYNC_ONLINE_FLAG_All = false;
 
@@ -751,7 +754,12 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
             TS_NIM = GetNETtime(rawdata_nimtdc, data) - TS_NIM_0;
             dTS_NIM = TS_NIM - TS_NIM_pre;
             TS_NIM_pre = TS_NIM;
-            if (LOAD_N_FLAG_NIM) dTS_NIM_seq.push_back(dTS_NIM);
+            if (N_chain_FLAG_NIM) { //dTS_NIM_chain.push_back(dTS_NIM);
+              if (dTS_NIM_chain.size() >= N_chain) {
+                dTS_NIM_chain.erase(dTS_NIM_chain.begin());
+              }
+              dTS_NIM_chain.push_back(dTS_NIM);
+	    }
           }
           N_NIM_event++;
           N_NIM_Sync_Interval++;
@@ -803,10 +811,9 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
             Traw_NIM_T[ch][Traw_NIM_num[1][ch]] = time_T;
             Traw_NIM_TOT[ch][Traw_NIM_num[1][ch]] = Traw_NIM_T[ch][Traw_NIM_num[1][ch]] - Traw_NIM_L[ch][Traw_NIM_num[1][ch]];
           }
-          if (Traw_NIM_TOT[ch][Traw_NIM_num[1][ch]] > 0 && Traw_NIM_TOT[ch][Traw_NIM_num[1][ch]] < TOT_Noise_NIM) {
+          if (Traw_NIM_num[1][ch] < hitNmax && Traw_NIM_TOT[ch][Traw_NIM_num[1][ch]] > 0 && Traw_NIM_TOT[ch][Traw_NIM_num[1][ch]] < TOT_Noise_NIM) {
             Traw_NIM_L_valid[ch] = time_L;
             Traw_NIM_T_valid[ch] = time_T;
-            //cout << "NIM: " << ch << ", " << Traw_NIM_L_valid[ch] << endl;
           }
           Traw_NIM_num[1][ch]++;
         }
@@ -820,17 +827,17 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
           bool breakOK = true;
           if (Skip_NIM) breakOK = false;
           Skip_NIM = false;
-          if (LOAD_N_FLAG_NIM && ONLINE_FLAG) breakOK = true;
+          if (N_chain_FLAG_NIM && ONLINE_FLAG) breakOK = true;
           if (breakOK) break;
         }
 
         if (rawdata_nimtdc.eof()) {
           END_NIM_FLAG = true;
           break;
-        } else if (rawdata_nimtdc.fail()) cout << "Eroor : file read error" << endl;
+        } else if (rawdata_nimtdc.fail()) cout << "Error : file read error" << endl;
       }
     }
-    if (dTS_NIM_seq.size() >= LOAD_N) LOAD_N_FLAG_NIM = false;
+    if (dTS_NIM_chain.size() >= N_chain && N_NIM_event > 2 * N_chain) N_chain_FLAG_NIM = false;
 
     for (int nIP = 0; nIP < N_IP; nIP++) {
       //===== For Reline Up ======
@@ -904,10 +911,10 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
             TS_KAL[nIP] = GetNETtime(rawdata[nIP], data) - TS_KAL_0[nIP];
             dTS_KAL[nIP] = TS_KAL[nIP] - TS_KAL_pre[nIP];
             if (!SYNC_ONLINE_FLAG[nIP]) {
-              if (dTS_KAL_seq[nIP].size() >= LOAD_N) {
-                dTS_KAL_seq[nIP].erase(dTS_KAL_seq[nIP].begin());
+              if (dTS_KAL_chain[nIP].size() >= N_chain) {
+                dTS_KAL_chain[nIP].erase(dTS_KAL_chain[nIP].begin());
               }
-              dTS_KAL_seq[nIP].push_back(dTS_KAL[nIP]);
+              dTS_KAL_chain[nIP].push_back(dTS_KAL[nIP]);
             }
             if (fNIM) {
               TS_diff[nIP] = TS_KAL[nIP] - TS_NIM;
@@ -1016,22 +1023,22 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
     if (ONLINE_FLAG && !SYNC_ONLINE_FLAG_All) {
       double tolerance = 0.3e-6;
       for (int nIP = 0; nIP < N_IP; nIP++) {
-        if (dTS_KAL_seq[nIP].size() == LOAD_N) {
+        if (dTS_KAL_chain[nIP].size() == N_chain) {
             bool match = true;
-            for (size_t i = 0; i < LOAD_N; ++i) {
-                if (abs(dTS_KAL_seq[nIP][i] - dTS_NIM_seq[i]) > tolerance) {
+            for (size_t i = 0; i < N_chain; ++i) {
+                if (abs(dTS_KAL_chain[nIP][i] - dTS_NIM_chain[i]) > tolerance) {
                     match = false;
                     break;
                 }
             }
             if (match) {
-                //cout << Form("dTS_KAL_seq[%02d]: ",                                       nIP);
-                //for (const auto& value : dTS_KAL_seq[nIP]) {
+                //cout << Form("dTS_KAL_chain[%02d]: ",                                       nIP);
+                //for (const auto& value : dTS_KAL_chain[nIP]) {
                 //    cout << Form("%2.2f", value * 1e6) << " ";
                 //}
                 //cout << endl;
-                //cout << "dTS_NIM_seq:     ";
-                //for (const auto& value : dTS_NIM_seq) {
+                //cout << "dTS_NIM_chain:     ";
+                //for (const auto& value : dTS_NIM_chain) {
                 //    cout << Form("%2.2f", value * 1e6) << " ";
                 //}
                 //cout << endl;
@@ -1039,7 +1046,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
             }
         }
       }
-      Stop_NIM = !LOAD_N_FLAG_NIM;
+      Stop_NIM = !N_chain_FLAG_NIM;
       for (int nIP = 0; nIP < N_IP; nIP++) {
         Stop_KAL[nIP] = SYNC_ONLINE_FLAG[nIP];
       }
@@ -1069,8 +1076,8 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
       RunTimer.Continue();
       double rate = N_event[0] / Trun;
       cout << fixed << setprecision(1) << "Timer :  " << Trun << " s, " <<
-        "Count Rate : " << (int) rate << " cps, " <<
-        "Reading    : " << N_event[0] << flush << " events" << "\r";
+        "Execution Rate : " << (int) rate << " cps, " <<
+        "Reading        : " << N_event[0] << flush << " events" << "\r";
     }
     if (KAL_ONLINE_FLAG) if (N_event[0] > 1000) break;
 
@@ -1940,7 +1947,6 @@ cAssym -> Write();
     for (int xy = 0; xy < 2; xy ++) {
        for (int oi = 0; oi < 2; oi ++){
           int ii = 4 * ( ud % 2 ) + 2 * ( xy % 2 ) + 1 * ( oi % 2 );
-          cout << "ii: " << ii << endl;
           cPositron -> cd(ii + 1);
           SetMargins();
           hValid[ud][xy][oi] -> Draw("colz");
@@ -2063,7 +2069,7 @@ cAssym -> Write();
 }
 
 void ThDACScan(int runN, int N_IP = 0, bool fNIM = 0, bool ftree = 0, const string & path = "test", bool ONLINE_FLAG = true) {
-  for (int ii = 0; ii < 10; ii++) {
+  for (int ii = 0; ii < 16; ii++) {
     rawdata2root(runN, N_IP, fNIM, ftree, path, ONLINE_FLAG, true, ii);
 	}
 }

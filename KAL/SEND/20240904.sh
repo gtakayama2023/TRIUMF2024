@@ -26,7 +26,7 @@ else
   # If no source_dir is specified, list directories under default_source_dir
   if [ -z "$source_dir" ]; then
     echo "Available directories under $default_source_dir:"
-    select dir in $(find "$default_source_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
+    select dir in $(find "$default_source_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort); do
       if [ -n "$dir" ]; then
         source_dir="$default_source_dir$dir/"
         break
@@ -67,84 +67,10 @@ if [ -z "$files" ]; then
     exit 1
 fi
 
-# Read all CSV files and create a summary table
-csv_summary_html="$source_dir/csv_summary.html"
-cat <<EOF > "$csv_summary_html"
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Run Summary for $title</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            padding: 1rem;
-        }
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 2rem;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 0.5rem;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-    </style>
-</head>
-<body>
-    <h1>Run summary for $title</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>File</th>
-                <th>Run Info</th>
-                <th>Start Date</th>
-            </tr>
-        </thead>
-        <tbody>
-EOF
+# Define paths
+index_html="$source_dir/index.html"
 
-# Loop through each CSV file
-for csv_file in "$source_dir"/*.csv; do
-    [ -e "$csv_file" ] || continue # Skip if no CSV files are found
-
-    # Extract the filename without extension
-    csv_filename=$(basename "$csv_file" .csv)
-
-    # Read the runInfo and start_date values from the CSV using awk with custom FS
-    run_info=$(csvtool col 1 "$csv_file" | tail -n +2)
-    start_date=$(csvtool col 2 "$csv_file" | tail -n +2)
-
-    # Add the information to the summary table
-    cat <<EOF >> "$csv_summary_html"
-            <tr>
-                <td>$csv_filename</td>
-                <td>$run_info</td>
-                <td>$start_date</td>
-            </tr>
-EOF
-done
-
-# Close the summary table HTML tags
-cat <<EOF >> "$csv_summary_html"
-        </tbody>
-    </table>
-</body>
-</html>
-EOF
-
-# Add a link to the CSV summary table at the top of the index_html
+# Create the combined HTML file
 cat <<EOF > "$index_html"
 <!DOCTYPE html>
 <html lang="en">
@@ -174,20 +100,6 @@ cat <<EOF > "$index_html"
             font-size: 2rem;
             margin-bottom: 1rem;
         }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            margin: 0.5rem 0;
-        }
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -201,8 +113,18 @@ cat <<EOF > "$index_html"
         th {
             background-color: #f4f4f4;
         }
-        td {
-            background-color: #fff;
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -211,22 +133,60 @@ cat <<EOF > "$index_html"
         <h1>$title</h1>
     </header>
     <main>
-        <a href="csv_summary.html">View Run Summary</a>
+        <h2>Run Summary and Data</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Statistics</th>
+                    <th>JSROOT</th>
+                    <th>Start Date</th>
+                    <th>Run Info</th>
+                    <th>Run Time</th>
+                    <th>IP Addresses</th>
+                </tr>
+            </thead>
+            <tbody>
 EOF
 
 # Create a temporary file to hold HTML entries
 html_entries="$source_dir/html_entries.txt"
+> "$html_entries"  # Clear the temporary file if it exists
 
-# Loop through each sorted file
-for file in $files; do
-    # Extract the base name without extension
+# Loop through each file (only MSE files)
+for file in "$source_dir"/*; do
     base_name=$(basename "$file")
 
-    # Check if the file is a .root file
-    if [[ "$base_name" == *.root ]]; then
-        # Create a CGI script for .root files
-        cgi_script="$source_dir/${base_name%.root}.cgi"
-        cat <<EOF > "$cgi_script"
+    # Check if the file name starts with MSE
+    if [[ "$base_name" == MSE* ]]; then
+        # Check if the file is a .csv file
+        if [[ "$file" == *.csv ]]; then
+            # Extract the filename without extension
+            csv_filename=$(basename "$file" .csv)
+
+            # Read the parameters from the CSV
+            run_info=$(csvtool col 1 "$file" | tail -n +2)
+            start_date=$(csvtool col 2 "$file" | tail -n +2)
+            run_time=$(csvtool col 3 "$file" | tail -n +2)
+            IP_adress=$(csvtool col 4 "$file" | tail -n +2)
+
+            # Add the CSV file information to the summary table
+            cat <<EOF >> "$index_html"
+                    <tr>
+                        <td>$csv_filename</td>
+                        <td><a href="$base_url$dir/${csv_filename}.html">$csv_filename.html</a></td>
+                        <td><a href="$base_url$dir/${csv_filename}.cgi">${csv_filename}.cgi</a></td>
+                        <td>$start_date</td>
+                        <td>$run_info</td>
+                        <td>$run_time</td>
+                        <td>$IP_adress</td>
+                    </tr>
+EOF
+
+        elif [[ "$file" == *.root ]]; then
+            # Create a CGI script for the .root file
+            cgi_script="$source_dir/${base_name%.root}.cgi"
+            cat <<EOF > "$cgi_script"
 #!/usr/bin/perl
 
 print "Content-type: text/html\\n\\n";
@@ -251,30 +211,20 @@ print '   </body>';
 print '</html>';
 EOF
 
-        # Make the CGI script executable
-        chmod +x "$cgi_script"
+            # Make the CGI script executable
+            chmod +x "$cgi_script"
 
-    elif [[ "$base_name" == *.html ]]; then
-        # Add the HTML file URL to the temporary entries file
-        echo "<tr><td><a href=\"$base_url$dir/$base_name\">$base_name</a></td><td><a href=\"$base_url$dir/${base_name%.html}.cgi\">${base_name%.html}.cgi</a></td></tr>" >> "$html_entries"
+            # Add to the HTML entries (Statistics and JSROOT columns)
+            echo "<tr><td>$base_name</td><td><a href=\"$base_url$dir/${base_name%.root}.html\">${base_name%.root}.html</a></td><td><a href=\"$base_url$dir/${base_name%.root}.cgi\">${base_name%.root}.cgi</a></td></tr>" >> "$html_entries"
+
+        elif [[ "$file" == *.html ]]; then
+            # Add HTML files to the temporary HTML entries list
+            echo "<tr><td>$base_name</td><td><a href=\"$base_url$dir/$base_name\">$base_name</a></td><td><a href=\"$base_url$dir/${base_name%.html}.cgi\">${base_name%.html}.cgi</a></td></tr>" >> "$html_entries"
+        fi
     fi
 done
 
-# Close the JSROOT list section in the new index file
-cat <<EOF >> "$index_html"
-
-        <h2>Data</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Statistics</th>
-                    <th>JSROOT</th>
-                </tr>
-            </thead>
-            <tbody>
-EOF
-
-# Append the HTML entries to the new index file
+# Append the HTML entries from the temporary file to the summary table
 cat "$html_entries" >> "$index_html"
 
 # Close the table and HTML tags
@@ -347,14 +297,15 @@ cat <<EOF > "$main_index_html"
     <main>
         <h2>DAQ</h2>
         <ul>
-        <li><a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/SlowControl/run.php?" </a> "Kalliope DAQ" </li>
+            <li><a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/SlowControl/run.php">Kalliope DAQ</a></li>
         </ul>
         <h2>Data Directory</h2>
         <ul>
+        </ul>
 EOF
 
 # List directories under main destination directory and add links to each index.html
-for dir in $(find "$default_source_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
+for dir in $(find "$default_source_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort); do
     echo "<li><a href=\"$base_url$dir/index.html\">$dir</a></li>" >> "$main_index_html"
 done
 
