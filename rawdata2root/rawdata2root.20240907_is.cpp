@@ -1069,7 +1069,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
       }
     }
     
-    if (N_event[0] > 1000){
+    if (N_event[0] > 100000){
       cout << "Read : " << N_event[0] << endl;
       break;
     }
@@ -1440,7 +1440,46 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   // 新しいヒストグラムの作成
 TH1D* Assym_FB = new TH1D("Assym_FB", "Assym_FB", hNIM_L[0]->GetNbinsX()/4, 2e3, 70e3);
 TH1D* Assym_UD = new TH1D("Assym_UD", "Assym_UD", hNIM_L[0]->GetNbinsX()/4, 2e3, 70e3);
+TH1D* Assym_FB_subBG = new TH1D("Assym_FB_subBG", "Assym_FB_subBG", hNIM_L[0]->GetNbinsX(), 2e3, 70e3);
+TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->GetNbinsX(), 2e3, 70e3);
 
+    // フィット関数と新しいヒストグラムの配列を定義
+    TF1* fBG[4];
+    TH1F* hNIM_L_subBG[4];
+    
+    for (int i = 0; i < 4; ++i) {
+      // 例としてフィット範囲を指定（適宜調整してください）
+      Double_t fitMin = 10.0;
+      Double_t fitMax = 50.0;
+      
+      // フィット (pol1: 1次関数でフィット) 用の関数を配列で作成
+      fBG[i] = new TF1(Form("fBG_%d", i), "pol1", fitMin, fitMax);
+      hNIM_L[i]->Fit(fBG[i], "R");  // "R"オプションで範囲指定
+      
+      // フィットした関数を引いた新しいヒストグラムを配列で作成
+      hNIM_L_subBG[i] = (TH1F*)hNIM_L[i]->Clone(Form("hNIM_L_subBG_%d", i));
+      hNIM_L_subBG[i]->Add(fBG[i], -1);  // フィットした関数を引く
+      
+      hNIM_L_subBG[i]->Write();  // ROOTファイルに保存する場合
+    }
+
+  TCanvas * cNIM_L_subBG;
+  cNIM_L_subBG = new TCanvas(Form("cNIM_L_subBG"), Form("cNIM_L_subBG"), 1200, 600);
+  cNIM_L_subBG -> Divide(2, 2);
+  for (int jj = 0; jj < 4; jj++) {
+    cNIM_L_subBG -> cd(jj + 1);
+    SetMargins();
+    hNIM_L_subBG[jj] -> Draw("");
+    fBG[jj] -> Draw("same");
+    //fNIM_L[jj] -> Draw("same");
+    gPad -> SetLogy(1);
+    gPad -> Update();
+    cNIM_L_subBG -> cd(jj + 1) -> Modified();
+    cNIM_L_subBG -> cd(jj + 1) -> Update();
+  }
+  cNIM_L_subBG -> Write();
+
+ 
 // ビンごとの演算とヒストグラムへのフィリング
 for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
     double value1_0 = hNIM_L[0]->GetBinContent(bin);
@@ -1470,7 +1509,37 @@ for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
     }
 }
 
-TCanvas * cAssym = new TCanvas(Form("cAssym"), Form("cAssym"), 1200, 600);
+ // ビンごとの演算とヒストグラムへのフィリング
+for (int bin = 1; bin <= hNIM_L_subBG[0]->GetNbinsX(); bin++) {
+    double value1_0 = hNIM_L_subBG[0]->GetBinContent(bin);
+    double value1_1 = hNIM_L_subBG[1]->GetBinContent(bin);
+    double value2_0 = hNIM_L_subBG[2]->GetBinContent(bin);
+    double value2_1 = hNIM_L_subBG[3]->GetBinContent(bin);
+
+    double error1_0 = sqrt(value1_0);
+    double error1_1 = sqrt(value1_1);
+    double error2_0 = sqrt(value2_0);
+    double error2_1 = sqrt(value2_1);
+
+    // Assym_FB_subBG の計算とフィリング
+    if (value1_0 + value1_1 != 0) {
+      double assym_fb = (value1_0 - value1_1) / (value1_0 + value1_1);
+      double error_fb = sqrt((4 * value1_0 * value1_1) / pow(value1_0 + value1_1, 3));
+      Assym_FB_subBG->SetBinContent(bin, assym_fb);
+      Assym_FB_subBG->SetBinError(bin, error_fb);
+    }
+
+    // Assym_UD_subBG の計算とフィリング
+    if (value2_0 + value2_1 != 0) {
+      double assym_ud = (value2_0 - value2_1) / (value2_0 + value2_1);
+      double error_ud = sqrt((4 * value2_0 * value2_1) / pow(value2_0 + value2_1, 3));
+        Assym_UD_subBG->SetBinContent(bin, assym_ud);
+        Assym_UD_subBG->SetBinError(bin, error_ud);
+    }
+}
+
+ 
+ TCanvas * cAssym = new TCanvas(Form("cAssym"), Form("cAssym"), 1200, 600);
 cAssym -> Divide(2,1);
 cAssym -> cd(1);
 SetMargins();
@@ -1489,6 +1558,27 @@ gPad -> Update();
 cAssym -> cd(2) -> Modified();
 cAssym -> cd(2) -> Update();
 cAssym -> Write();
+
+ 
+TCanvas * cAssym_subBG = new TCanvas(Form("cAssym_subBG"), Form("cAssym_subBG"), 1200, 600);
+cAssym_subBG -> Divide(2,1);
+cAssym_subBG -> cd(1);
+SetMargins();
+Assym_FB->Rebin(4);
+Assym_FB->Draw("E");  // "E" オプションを追加してエラーバーを表示
+gPad -> SetLogy(0);
+gPad -> Update();
+cAssym_subBG -> cd(1) -> Modified();
+cAssym_subBG -> cd(1) -> Update();
+cAssym_subBG -> cd(2);
+SetMargins();
+Assym_UD->Rebin(4);
+Assym_UD->Draw("E same");  // "E" オプションを追加してエラーバーを表示
+gPad -> SetLogy(0);
+gPad -> Update();
+cAssym_subBG -> cd(2) -> Modified();
+cAssym_subBG -> cd(2) -> Update();
+cAssym_subBG -> Write();
 
 
   //Kalliope

@@ -642,7 +642,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   bool notONLINE_FLAG = false;
 
   if (!ONLINE_FLAG) {
-    READ_SIZE_NIM = static_cast<double>(fsize_nimtdc) - 10 * 1024;
+    READ_SIZE_NIM = static_cast<double>(fsize_nimtdc) - 1 * 1024 * 1024;
     READ_SIZE_NIM = ( READ_SIZE_NIM / 1024 ) * 1024;
     ONLINE_FLAG = true;
     notONLINE_FLAG = true;
@@ -704,7 +704,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   double SkipN = 0;
 
   // Online mode
-  int N_chain = 3;
+  int N_chain = 2;
   bool N_chain_FLAG_NIM = true;
   bool SYNC_ONLINE_FLAG[12] = {false};
   bool SYNC_ONLINE_FLAG_All = false;
@@ -761,6 +761,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
               }
               dTS_NIM_chain.push_back(dTS_NIM);
 	    }
+	    //cout << "N_NIM_event (hogehoge): " << N_NIM_event << ", dTS_NIM: " << dTS_NIM << endl;
           }
           N_NIM_event++;
           N_NIM_Sync_Interval++;
@@ -911,6 +912,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
           } else {
             TS_KAL[nIP] = GetNETtime(rawdata[nIP], data) - TS_KAL_0[nIP];
             dTS_KAL[nIP] = TS_KAL[nIP] - TS_KAL_pre[nIP];
+	    //if(N_event[0] < 6) cout << "N_KAL_event (hogehoge): " << N_event[0] << ", dTS_KAL: " << dTS_KAL[0] << endl;
             if (!SYNC_ONLINE_FLAG[nIP]) {
               if (dTS_KAL_chain[nIP].size() >= N_chain) {
                 dTS_KAL_chain[nIP].erase(dTS_KAL_chain[nIP].begin());
@@ -1435,6 +1437,8 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   // 新しいヒストグラムの作成
 TH1D* Assym_FB = new TH1D("Assym_FB", "Assym_FB", hNIM_L[0]->GetNbinsX()/4, 2e3, 70e3);
 TH1D* Assym_UD = new TH1D("Assym_UD", "Assym_UD", hNIM_L[0]->GetNbinsX()/4, 2e3, 70e3);
+TH1D* Assym_FB_subBG = new TH1D("Assym_FB_subBG", "Assym_FB_subBG", hNIM_L[0]->GetNbinsX()/4, 2e3, 70e3);
+TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->GetNbinsX()/4, 2e3, 70e3);
 
 // ビンごとの演算とヒストグラムへのフィリング
 for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
@@ -1465,6 +1469,29 @@ for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
     }
 }
 
+// Fit Background
+    // フィット関数と新しいヒストグラムの配列を定義
+    TF1* fBG[4];
+    TH1F* hNIM_L_subBG[4];
+    
+    for (int i = 0; i < 4; ++i) {
+        // 例としてフィット範囲を指定（適宜調整してください）
+        Double_t fitMin = 10.0;
+        Double_t fitMax = 50.0;
+        
+        // フィット (pol1: 1次関数でフィット) 用の関数を配列で作成
+        fBG[i] = new TF1(Form("fBG_%d", i), "pol1", fitMin, fitMax);
+        hNIM_L[i]->Fit(fBG[i], "R");  // "R"オプションで範囲指定
+        
+        // フィットした関数を引いた新しいヒストグラムを配列で作成
+        hNIM_L_subBG[i] = (TH1F*)hNIM_L[i]->Clone(Form("hNIM_L_subBG_%d", i));
+        hNIM_L_subBG[i]->Add(fBG[i], -1);  // フィットした関数を引く
+        
+        // 新しいヒストグラムを描画・保存
+        hNIM_L_subBG[i]->Draw("hist");
+        hNIM_L_subBG[i]->Write();  // ROOTファイルに保存する場合
+    }
+ 
 TCanvas * cAssym = new TCanvas(Form("cAssym"), Form("cAssym"), 1200, 600);
 cAssym -> Divide(2,1);
 cAssym -> cd(1);
@@ -1484,6 +1511,26 @@ gPad -> Update();
 cAssym -> cd(2) -> Modified();
 cAssym -> cd(2) -> Update();
 cAssym -> Write();
+
+ TCanvas * cAssym_subBG = new TCanvas(Form("cAssym_subBG"), Form("cAssym_subBG"), 1200, 600);
+cAssym_subBG -> Divide(2,1);
+cAssym_subBG -> cd(1);
+SetMargins();
+Assym_FB->Rebin(4);
+Assym_FB->Draw("E");  // "E" オプションを追加してエラーバーを表示
+gPad -> SetLogy(0);
+gPad -> Update();
+cAssym_subBG -> cd(1) -> Modified();
+cAssym_subBG -> cd(1) -> Update();
+cAssym_subBG -> cd(2);
+SetMargins();
+Assym_UD->Rebin(4);
+Assym_UD->Draw("E same");  // "E" オプションを追加してエラーバーを表示
+gPad -> SetLogy(0);
+gPad -> Update();
+cAssym_subBG -> cd(2) -> Modified();
+cAssym_subBG -> cd(2) -> Update();
+cAssym_subBG -> Write();
 
 
   //Kalliope
