@@ -299,6 +299,10 @@ cat <<EOF > "$main_index_html"
         <ul>
             <li><a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/SlowControl/run.php">Kalliope DAQ</a></li>
         </ul>
+        <h2>ANA</h2>
+        <ul>
+            <li><a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ANA/conv.php">Kalliope ANA</a></li>
+        </ul>
         <h2>Data Directory</h2>
         <ul>
         </ul>

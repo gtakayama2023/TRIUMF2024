@@ -47,6 +47,8 @@ void ThDAC(int runN = 1)
     vecIP.assign(ip_set.begin(), ip_set.end());
     int N_IP = vecIP.size(); // IPの総数を取得
 
+    //int RealThDAC[16] = {f,7,b,3,d,5,9,1,0,8,4,c,2,a,6,e};
+    int RealThDAC[16] = {15,7,11,3,13,5,9,1,0,8,4,12,2,10,6,14};
     double N_count[16][maxCH][maxTH + 1] = {}; // 各チャンネルのあるThDACにおけるカウント数
     int BestTH[16][maxCH] = {};                // 各チャンネルの設定すべきThDAC
     int BestRate = 1500;                       // ThDAC調整で設定したいCount数
@@ -88,7 +90,7 @@ void ThDAC(int runN = 1)
             continue;
         }
         bool FLAG_ThDAC = true;
-        int endThDAC = 13;
+        int End_th = 13;
 
         std::string line;
         while (std::getline(infile, line))
@@ -113,11 +115,11 @@ void ThDAC(int runN = 1)
                     histograms[index]->SetBinContent(ch + 1, th, num);
 
                     // 最もBestRateに近いthを探す
-                    if (th < endThDAC)
+                    if (th < End_th)
                     {
                         if (abs(num - BestRate) < abs(N_count[ip][ch][BestTH[ip][ch]] - BestRate))
                         {
-                            BestTH[ip][ch] = th;
+                            BestTH[ip][ch] = RealThDAC[th];
                             if (abs(N_count[ip][ch][BestTH[ip][ch]] - BestRate) > BestRate * 3)
                             {
                                 BestTH[ip][ch]--;

@@ -1,5 +1,8 @@
 {
   "files.associations": {
-    "ThDAC.C": "cpp"
+    "ThDAC.C": "cpp",
+    "string": "cpp",
+    "filesystem": "cpp",
+    "stdexcept": "cpp"
   }
 }

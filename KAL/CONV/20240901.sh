@@ -4,7 +4,7 @@
 TODAY="track"
 RAW_DIR="../RAW"
 ROOT_DIR="../ROOT"
-HISTORY_FILE="./KAL/history.sh"
+HISTORY_FILE="./KAL/load.sh"
 
 # Default values for variables
 choice=-1
@@ -17,8 +17,8 @@ selected_dir=""
 runN_choice=""
 ONLINE_FLAG=0  # New ONLINE_FLAG default
 
-# Function to save current settings to history file
-save_to_history() {
+# Function to save current settings to load file
+save_to_load() {
     echo "#!/bin/bash" > $HISTORY_FILE
     echo "choice=$choice" >> $HISTORY_FILE
     echo "fNIM=$fNIM" >> $HISTORY_FILE
@@ -39,7 +39,7 @@ if [ "$#" -gt 0 ]; then
             source "$HISTORY_FILE"
             echo "Loaded previous settings from $HISTORY_FILE"
         else
-            echo "No history file found."
+            echo "No load file found."
             exit 1
         fi
     else
@@ -52,13 +52,13 @@ if [ "$#" -gt 0 ]; then
     fi
 else
     echo "Please type the number corresponding to what you want to do:"
-    echo "0: Run rawdata2root"
-    echo "1: ThDACScan"
-    echo "2: PlotAllHist"
-    echo "3: Check Channel Setting"
-    echo "4: Check Real Channel Assign"
-    echo "5: rawdata2root"
-    echo "6: Test NIMTDC2root"
+    echo "0: Run rawdata2root"               
+    echo "1: ThDACScan"               
+    echo "2: PlotAllHist"               
+    echo "3: Check Channel Setting"               
+    echo "4: Check Real Channel Assign"               
+    echo "5: rawdata2root"               
+    echo "6: Test NIMTDC2root"               
     read -p "Type No.: " choice
 
     if [[ "$choice" == "0" || "$choice" == "1" || "$choice" == "2" ]]; then
@@ -165,6 +165,7 @@ if sed '1d' ./txt/EvtMatch_run$runN.txt | grep -q "Mismatch"; then
     echo ""
 fi
 
-# Save current settings to history file
-save_to_history
+# Save current settings to load file
+save_to_load
 
+./KAL/send.sh $path

@@ -1,6 +1,6 @@
 //************************************************************************
 //    Kalliope, NIM-TDC Rawdata to Root for #M9999 @TRIUMF
-//    edit by S.Ishitani (Osaka University), 2024.08.10
+//    edit by S.Ishitani (Osaka University), 2024.09.07
 //************************************************************************
 
 // rawdata2root.20240905.cpp
@@ -1068,7 +1068,12 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
         N_NIM_event = 0;
       }
     }
-
+    
+    if (N_event[0] > 1000){
+      cout << "Read : " << N_event[0] << endl;
+      break;
+    }
+    
     //===== Display Procedure of Event Loop =====
     if (N_event[0] == 0) cout << endl;
     if (N_event[0] % 1000 == 0) {
