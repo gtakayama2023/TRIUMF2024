@@ -14,7 +14,7 @@
 
 void ThDAC(int runN = 1)
 {
-    const int maxTH = 15; // 最大TH値を指定（例：15）
+    const int maxTH = 10; // 最大TH値を指定（例：15）
     const int maxCH = 32; // 最大チャンネル数
 
     std::set<int> ip_set;   // CSVから動的にIPを取得するためのセット

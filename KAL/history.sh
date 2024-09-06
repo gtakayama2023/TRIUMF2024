@@ -1,9 +1,9 @@
 #!/bin/bash
-choice=0
-fNIM=1
+choice=1
+fNIM=0
 ftree=0
 path_choice="prompt"
-runN=16
-selected_dir="../RAW/KAL_TEST/"
+runN=17
+selected_dir="../RAW/NOISE/"
 runN_choice="14"
 ONLINE_FLAG=0

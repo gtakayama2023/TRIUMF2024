@@ -3,7 +3,7 @@
 //    edit by S.Ishitani (Osaka University), 2024.08.10
 //************************************************************************
 
-// rawdata2root.20240831.cpp
+// rawdata2root.20240905.cpp
 #include <iterator>
 #include <iostream>
 #include <fstream>
@@ -640,7 +640,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   streampos fsize_nimtdc = rawdata_nimtdc.tellg(); // NIM-TDCのファイルサイズを定義
 
   if (!ONLINE_FLAG) {
-    READ_SIZE_NIM = fsize_nimtdc * 0.98;
+    READ_SIZE_NIM = fsize_nimtdc * 0.95;
     READ_SIZE_NIM = ( READ_SIZE_NIM / 1024 ) * 1024;
     ONLINE_FLAG = true;
           //start_pos = (start_pos / 1024) * 1024; // 1024単位に調整
@@ -2063,7 +2063,7 @@ cAssym -> Write();
 }
 
 void ThDACScan(int runN, int N_IP = 0, bool fNIM = 0, bool ftree = 0, const string & path = "test", bool ONLINE_FLAG = true) {
-  for (int ii = 0; ii < 16; ii++) {
+  for (int ii = 0; ii < 10; ii++) {
     rawdata2root(runN, N_IP, fNIM, ftree, path, ONLINE_FLAG, true, ii);
 	}
 }
