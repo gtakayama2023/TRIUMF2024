@@ -1493,7 +1493,10 @@ TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->G
  
 // ビンごとの演算とヒストグラムへのフィリング
 for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
-    double value1_0 = hNIM_L[0]->GetBinContent(bin);
+  double value[2][2] = {
+    hNIM_L[0]->GetBinContent(bin), hNIM_L[0]->GetBinContent(bin),
+  };
+  double value1_0 = hNIM_L[0]->GetBinContent(bin);
     double value1_1 = hNIM_L[1]->GetBinContent(bin);
     double value2_0 = hNIM_L[2]->GetBinContent(bin);
     double value2_1 = hNIM_L[3]->GetBinContent(bin);
@@ -1506,7 +1509,7 @@ for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
     for(int i=1; i<3; i++){
       for(int j=0; j<2; j++){
 	if(i==1 && j==0) cout << "bin : " << bin << ", ";
-	cout << Form("value%d_%d", i, j)
+	cout << Form("value%d_%d", i, j) << ": " << value
 	  }
     }
 
