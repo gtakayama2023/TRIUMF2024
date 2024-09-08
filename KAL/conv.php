@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // Add button to run the script
     echo "<div class='card mt-3'>";
     echo "<h2 class='mb-0'>Next thing you should do: </h2>";
-    echo "<pre>> ssh osaka@142.90.154.232\nPW: TSandKK@cmms\n> KAL_ANA_START\n</pre>";
+    echo "<pre>> ssh kal-dc-ana@142.90.154.231\nPW: m20c\n> KAL_ANA_START\n</pre>";
     #echo "<a href='http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ANA/conv.cgi' class='btn btn-danger btn-lg' role='button' target='_blank'>";
     #echo "Are you sure to run?";
     #echo "</a>";
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // Add button to run the script
     echo "<div class='card mt-3'>";
     echo "<h2 class='mb-0'>Links: </h2>";
-    echo "<a href='http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ROOT/index.html' class='btn btn-danger btn-lg' role='button' target='_blank'>";
+    echo "<a href='http://142.90.154.231/JSROOT/EXP/TRIUMF/2024/ROOT/index.html' class='btn btn-danger btn-lg' role='button' target='_blank'>";
     echo "Home";
     echo "</a>";
     #echo "<a href='http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ANA/conv.cgi' class='btn btn-danger btn-lg' role='button' target='_blank'>";
@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 </head>
 <body>
     <div class="container">
-        <a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ROOT/index.html" class="btn btn-primary home-button">Home</a>
+        <a href="http://142.90.154.231/JSROOT/EXP/TRIUMF/2024/ROOT/index.html" class="btn btn-primary home-button">Home</a>
         <h1 class="text-center mb-4">TRIUMF 2024 Experiment: ANA for Kalliope</h1>
         <form action="" method="post">
             <div class="form-group">

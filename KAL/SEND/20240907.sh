@@ -2,7 +2,8 @@
 
 # Define default variables
 default_source_dir="../ROOT/"
-base_url="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ROOT/"
+base_url232="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ROOT/" # DAQ
+base_url231="http://142.90.154.231/JSROOT/EXP/TRIUMF/2024/ROOT/" # ANA
 
 # If a directory name is provided as a positional argument, use it as source_dir
 if [ $# -gt 0 ]; then
@@ -134,7 +135,7 @@ cat <<EOF > "$index_html"
     </header>
     <main>
 	<li>
-    	<a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ROOT/index.html">Home</a>
+    	<a href="http://142.90.154.231/JSROOT/EXP/TRIUMF/2024/ROOT/index.html">Home</a>
 	</li>
 	<li>
 	<a href="https://docs.google.com/spreadsheets/d/1LdJk-tyk8UCVEBBByiUcNRiroIleWNkwO0eEJwqG1mE/edit?usp=sharing">Runsummary (Google Sheets)</a>
@@ -180,8 +181,8 @@ for file in $(ls -r "$source_dir"/*); do
             cat <<EOF >> "$index_html"
                     <tr>
                         <td>$csv_filename</td>
-                        <td><a href="$base_url$dir/${csv_filename}.html">$csv_filename.html</a></td>
-                        <td><a href="$base_url$dir/${csv_filename}.cgi">${csv_filename}.cgi</a></td>
+                        <td><a href="$base_url231$dir/${csv_filename}.html">$csv_filename.html</a></td>
+                        <td><a href="$base_url232$dir/${csv_filename}.cgi">${csv_filename}.cgi</a></td>
                         <td>$start_date</td>
                         <td>$run_info</td>
                         <td>$run_time</td>
@@ -221,11 +222,11 @@ EOF
             chmod +x "$cgi_script"
 
             # Add to the HTML entries (Statistics and JSROOT columns)
-            echo "<tr><td>$base_name</td><td><a href=\"$base_url$dir/${base_name%.root}.html\">${base_name%.root}.html</a></td><td><a href=\"$base_url$dir/${base_name%.root}.cgi\">${base_name%.root}.cgi</a></td></tr>" >> "$html_entries"
+            echo "<tr><td>$base_name</td><td><a href=\"$base_url231$dir/${base_name%.root}.html\">${base_name%.root}.html</a></td><td><a href=\"$base_url232$dir/${base_name%.root}.cgi\">${base_name%.root}.cgi</a></td></tr>" >> "$html_entries"
 
         elif [[ "$file" == *.html ]]; then
             # Add HTML files to the temporary HTML entries list
-            echo "<tr><td>$base_name</td><td><a href=\"$base_url$dir/$base_name\">$base_name</a></td><td><a href=\"$base_url$dir/${base_name%.html}.cgi\">${base_name%.html}.cgi</a></td></tr>" >> "$html_entries"
+            echo "<tr><td>$base_name</td><td><a href=\"$base_url231$dir/$base_name\">$base_name</a></td><td><a href=\"$base_url232$dir/${base_name%.html}.cgi\">${base_name%.html}.cgi</a></td></tr>" >> "$html_entries"
         fi
     fi
 done
@@ -313,7 +314,7 @@ cat <<EOF > "$main_index_html"
         </ul>
         <h2>ANA</h2>
         <ul>
-	    <li><a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ANA/conv.php">Kalliope ANA</a> (ここから Kalliope のデータ解析の設定を決めますのだ。)</li>
+	    <li><a href="http://142.90.154.231/JSROOT/EXP/TRIUMF/2024/ANA/conv.php">Kalliope ANA</a> (ここから Kalliope のデータ解析の設定を決めますのだ。)</li>
         </ul>
 	<h2>Data Directory</h2>
 	<ul>
@@ -323,7 +324,7 @@ EOF
 
 # List directories under main destination directory and add links to each index.html
 for dir in $(find "$default_source_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort); do
-    echo "<li><a href=\"$base_url$dir/index.html\">$dir</a></li>" >> "$main_index_html"
+    echo "<li><a href=\"$base_url231$dir/index.html\">$dir</a></li>" >> "$main_index_html"
 done
 
 # Close the HTML tags

@@ -2,8 +2,8 @@
 choice=0
 fNIM=1
 ftree=0
-path_choice="KAL_ONLINE/"
-runN=33
-selected_dir="../RAW/KAL_ONLINE/"
-runN_choice="33"
-ONLINE_FLAG=1
+path_choice="KAL_RUN/"
+runN=35
+selected_dir="../RAW/KAL_RUN/"
+runN_choice="35"
+ONLINE_FLAG=0
