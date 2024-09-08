@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // Display the parameters
     echo "<div class='card mt-3'>";
     echo "<div class='card-header bg-primary text-white'>";
-    echo "<h2 class='mb-0'>Set Parameters</h2>";
+    echo "<h2 class='mb-0'>Parameters Set: </h2>";
     echo "</div>";
     echo "<div class='card-body'>";
     echo "<pre class='bg-light p-3 rounded'>";
@@ -54,10 +54,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     echo "</div>";
     
     // Add button to run the script
-    echo "<div class='mt-4'>";
-    echo "<a href='http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ANA/conv.cgi' class='btn btn-danger btn-lg' role='button' target='_blank'>";
-    echo "Are you sure to run?";
+    echo "<div class='card mt-3'>";
+    echo "<h2 class='mb-0'>Next thing you should do: </h2>";
+    echo "<pre>> ssh osaka@142.90.154.232\nPW: TSandKK@cmms\n> KAL_ANA_START\n</pre>";
+    #echo "<a href='http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ANA/conv.cgi' class='btn btn-danger btn-lg' role='button' target='_blank'>";
+    #echo "Are you sure to run?";
+    #echo "</a>";
+    echo "</div>";
+    
+    // Add button to run the script
+    echo "<div class='card mt-3'>";
+    echo "<h2 class='mb-0'>Links: </h2>";
+    echo "<a href='http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ROOT/index.html' class='btn btn-danger btn-lg' role='button' target='_blank'>";
+    echo "Home";
     echo "</a>";
+    #echo "<a href='http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ANA/conv.cgi' class='btn btn-danger btn-lg' role='button' target='_blank'>";
+    #echo "Are you sure to run?";
+    #echo "</a>";
     echo "</div>";
 
 } else {

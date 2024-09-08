@@ -24,7 +24,7 @@
 #include "./include/configureIP.h"
 #include "./include/setup.h"
 
-//#define TEST_ON // ON: Read only 10k events
+#define TEST_ON // ON: Read only 100k events
 #define TRACKING_ON  // ON: Tracking
 
 using namespace std;
@@ -195,7 +195,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   int IP_NIM = 16;
   if (fNIM) {
     ifname_nimtdc = Form("../RAW/%s/MSE%06d_192.168.10.%d.rawdata",   path.c_str(), runN, IP_NIM);
-    rawdata_nimtdc.open(ifname_nimtdc.c_str());
+    rawdata_nimtdc.open(ifname_nimtdc.c_str(),ios::binary);
     if (!rawdata_nimtdc) {
       cout << "Unable to open file: " << ifname_nimtdc << endl;
       exit(1); // terminate with error
@@ -241,7 +241,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
   for (int ii = 0; ii < N_IP; ii++) {
     ifname[ii] = Form("../RAW/%s/%s%d.rawdata", path.c_str(), base_name.Data(), vecIP[ii]);
-    rawdata[ii].open(ifname[ii].c_str());
+    rawdata[ii].open(ifname[ii].c_str(), ios::binary);
     if (!rawdata[ii]) {
       cout << "Unable to open file: " << ifname[ii] << endl;
       exit(1); // terminate with error
@@ -250,7 +250,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   }
 
   if (!fNIM) {
-    rawdata_nimtdc.open(ifname[0].c_str());
+    rawdata_nimtdc.open(ifname[0].c_str(), ios::binary);
     fNIM = true;
   }
 
@@ -499,7 +499,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   vector < TH1F * > hNIM_L;
   hNIM_L.resize(4);
   for (int jj = 0; jj < 4; jj++) {
-    hNIM_L[jj] = new TH1F(Form("hTDC_L_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TDC}_{Leading}; #it{TDC}_{Leading} [ns]; #it{counts}", jj), 1e3, -1e3, 7e4);
+    hNIM_L[jj] = new TH1F(Form("hTDC_L_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TDC}_{Leading}; #it{TDC}_{Leading} [ns]; #it{counts}", jj), 7e3, -1e3, 7e4);
   }
   //vector < vector < TH1F * >> hKAL_L;
   //hKAL_L.resize(N_IP);
@@ -640,7 +640,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   rawdata_nimtdc.seekg(0, ios::end);
   if (rawdata_nimtdc.tellg() == 0) {
     std::cerr << "ファイルが空です。" << std::endl;
-    return -1;
+    exit(1);
   }
   streampos fsize_nimtdc = rawdata_nimtdc.tellg(); // NIM-TDCのファイルサイズを定義
   cout << "fsie_nimtdc: " <<  fsize_nimtdc << endl;
@@ -1079,12 +1079,12 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
         N_NIM_event = 0;
       }
     }
-    
+#ifdef TEST_ON
     if (N_event[0] > 100000){
       //cout << "Read : " << N_event[0] << endl;
-      //break; hogehoge
+      //      break;
     }
-    
+#endif
       //===== Display Procedure of Event Loop =====
     if (N_event[0] == 0) cout << endl;
     if (N_event[0] % 1000 == 0) {
@@ -1449,10 +1449,10 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   cNIM_L -> Write();
 
   // 新しいヒストグラムの作成
-TH1D* Assym_FB = new TH1D("Assym_FB", "Assym_FB", hNIM_L[0]->GetNbinsX()*2, 0, 70e3);
-TH1D* Assym_UD = new TH1D("Assym_UD", "Assym_UD", hNIM_L[0]->GetNbinsX()*2, 0, 70e3);
-TH1D* Assym_FB_subBG = new TH1D("Assym_FB_subBG", "Assym_FB_subBG", hNIM_L[0]->GetNbinsX()*2, 0, 70e3);
-TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->GetNbinsX()*2, 0, 70e3);
+TH1D* Assym_FB = new TH1D("Assym_FB", "Assym_FB", hNIM_L[0]->GetNbinsX(), 0, 10e3);
+TH1D* Assym_UD = new TH1D("Assym_UD", "Assym_UD", hNIM_L[0]->GetNbinsX(), 0, 10e3);
+TH1D* Assym_FB_subBG = new TH1D("Assym_FB_subBG", "Assym_FB_subBG", hNIM_L[0]->GetNbinsX(), 0, 10e3);
+TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->GetNbinsX(), 0, 10e3);
 
     // フィット関数と新しいヒストグラムの配列を定義
     TF1* fBG[4];
@@ -1469,11 +1469,11 @@ TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->G
       
       // フィットした関数を引いた新しいヒストグラムを配列で作成
       hNIM_L_subBG[i] = (TH1F*)hNIM_L[i]->Clone(Form("hNIM_L_subBG_%d", i));
-      hNIM_L_subBG[i]->Add(fBG[i], -1);  // フィットした関数を引く
+      hNIM_L_subBG[i]->Add(fBG[i], -1.0);  // フィットした関数を引く
       
       hNIM_L_subBG[i]->Write();  // ROOTファイルに保存する場合
     }
-
+    
   TCanvas * cNIM_L_subBG;
   cNIM_L_subBG = new TCanvas(Form("cNIM_L_subBG"), Form("cNIM_L_subBG"), 1200, 600);
   cNIM_L_subBG -> Divide(2, 2);
@@ -1493,35 +1493,48 @@ TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->G
  
 // ビンごとの演算とヒストグラムへのフィリング
 for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
-    double value1_0 = hNIM_L[0]->GetBinContent(bin);
-    double value1_1 = hNIM_L[1]->GetBinContent(bin);
-    double value2_0 = hNIM_L[2]->GetBinContent(bin);
-    double value2_1 = hNIM_L[3]->GetBinContent(bin);
+  double value[2][2] = {
+    hNIM_L[0]->GetBinContent(bin), hNIM_L[1]->GetBinContent(bin),
+    hNIM_L[2]->GetBinContent(bin), hNIM_L[3]->GetBinContent(bin)
+  };
+  double error[2][2] = {
+    sqrt(value[0][0]), sqrt(value[0][1]),
+    sqrt(value[1][0]), sqrt(value[1][1])
+  };
 
-    double error1_0 = sqrt(value1_0);
-    double error1_1 = sqrt(value1_1);
-    double error2_0 = sqrt(value2_0);
-    double error2_1 = sqrt(value2_1);
-
-    for(int i=1; i<3; i++){
+  /*
+    for(int i=0; i<2; i++){
       for(int j=0; j<2; j++){
-	if(i==1 && j==0) cout << "bin : " << bin << ", ";
-	cout << Form("value%d_%d", i, j)
-	  }
+	if(value[0][0] > 10){
+	  if(i==0 && j==0) cout << "bin : " << bin << ", ";
+	  cout << Form("value[%d][%d]", i, j) << ": " << value[i][j] << ", ";
+	  if(i==1 && j==1) cout << endl;
+	}
+      }
     }
-
+  */
     // Assym_FB の計算とフィリング
-    if (value1_0 + value1_1 != 0) {
-        double assym_fb = (value1_0 - value1_1) / (value1_0 + value1_1);
-        double error_fb = sqrt((4 * value1_0 * value1_1) / pow(value1_0 + value1_1, 3));
+    if (value[0][0] + value[0][1] != 0) {
+        double assym_fb = (value[0][0] - value[0][1]) / (value[0][0] + value[0][1]);
+        double error_fb = sqrt((4 * value[0][0] * value[0][1]) / pow(value[0][0] + value[0][1], 3));
+	if(bin <  hNIM_L[0]->GetNbinsX()/10){
+	  cout << "bin : " << bin << ", assym_fb : " << assym_fb << endl;
+	}
+	if(assym_fb > 1) cout << "assym_fb : " << assym_fb << ", "
+			      << value[0][0] << "," << value[0][1] << endl;	
         Assym_FB->SetBinContent(bin, assym_fb);
         Assym_FB->SetBinError(bin, error_fb);
     }
 
     // Assym_UD の計算とフィリング
-    if (value2_0 + value2_1 != 0) {
-        double assym_ud = (value2_0 - value2_1) / (value2_0 + value2_1);
-        double error_ud = sqrt((4 * value2_0 * value2_1) / pow(value2_0 + value2_1, 3));
+    if (value[1][0] + value[1][1] != 0) {
+        double assym_ud = (value[1][0] - value[1][1]) / (value[1][0] + value[1][1]);
+        double error_ud = sqrt((4 * value[1][0] * value[1][1]) / pow(value[1][0] + value[1][1], 3));
+	if(bin <  hNIM_L[0]->GetNbinsX()/10){	
+	  cout << "bin : " << bin << ", assym_ud : " << assym_ud << endl;
+	}
+	if(assym_ud > 1) cout << "assym_ud : " << assym_ud << ", "
+			      << value[0][0] << "," << value[0][1] << endl;	
         Assym_UD->SetBinContent(bin, assym_ud);
         Assym_UD->SetBinError(bin, error_ud);
     }
@@ -2264,7 +2277,7 @@ void Check_Real_CH() {
     //if(runN<10) ifname[i]=Form("../RAW/%s/MSE00000%d_192.168.10.%d.rawdata",path.c_str(),runN,nIP);
     //else ifname[i]=Form("../RAW/%s/MSE0000%d_192.168.10.%d.rawdata",path.c_str(),runN,nIP);
     ifname[i] = Form("../RAW/test_noise/MSE000000_192.168.10.%d.rawdata", nIP);
-    rawdata[i].open(ifname[i].c_str());
+    rawdata[i].open(ifname[i].c_str(), ios::binary);
 
     if (!rawdata[i]) {
       cout << "Unable to open file: " << ifname[i] << endl;

@@ -1,9 +1,9 @@
 #!/bin/bash
-choice=1
+choice=0
 fNIM=1
 ftree=0
-path_choice="NOISE/"
-runN=51
-selected_dir="../RAW/NOISE/"
-runN_choice="51"
-ONLINE_FLAG=0
+path_choice="KAL_ONLINE/"
+runN=32
+selected_dir="../RAW/KAL_ONLINE/"
+runN_choice="32"
+ONLINE_FLAG=1

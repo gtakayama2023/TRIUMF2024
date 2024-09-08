@@ -133,6 +133,12 @@ cat <<EOF > "$index_html"
         <h1>$title</h1>
     </header>
     <main>
+	<li>
+    	<a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ROOT/index.html">Home</a>
+	</li>
+	<li>
+	<a href="https://docs.google.com/spreadsheets/d/1LdJk-tyk8UCVEBBByiUcNRiroIleWNkwO0eEJwqG1mE/edit?usp=sharing">Runsummary (Google Sheets)</a>
+	</li>
         <h2>Run Summary and Data</h2>
         <table>
             <thead>
@@ -154,7 +160,7 @@ html_entries="$source_dir/html_entries.txt"
 > "$html_entries"  # Clear the temporary file if it exists
 
 # Loop through each file (only MSE files)
-for file in "$source_dir"/*; do
+for file in $(ls -r "$source_dir"/*); do
     base_name=$(basename "$file")
 
     # Check if the file name starts with MSE
@@ -292,19 +298,26 @@ cat <<EOF > "$main_index_html"
 </head>
 <body>
     <header>
-        <h1>TRIUMF2024 experiment: Data Platform</h1>
+        <h1>TRIUMF2024 experiment: DAQ and ANA Platform</h1>
     </header>
     <main>
+	<h2>Link</h2>
+	<ul>
+	    <li><a href="https://docs.google.com/document/d/13fUyKNljUS0DHTU0ejrSJgy6c_CmIjeES9y-XU0g_1A/edit#heading=h.x045u3w4ja0l"> Online Logbook</a></li>
+	    <li><a href="https://github.com/kyasuda0820/TRIUMF2024_DC">DC Anlysis (GitHub Repository)</a></li>
+	    <li><a href="https://github.com/gtakayama2023/TRIUMF2024">Kalliope Analysis (GitHub Repository)</a></li>
+	</ul>
         <h2>DAQ</h2>
         <ul>
-            <li><a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/SlowControl/run.php">Kalliope DAQ</a></li>
+	    <li><a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/SlowControl/run.php">Kalliope DAQ</a> (ここから Kalliope DAQ の Run 設定を決めますのだ。)</li>
         </ul>
         <h2>ANA</h2>
         <ul>
-            <li><a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ANA/conv.php">Kalliope ANA</a></li>
+	    <li><a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/ANA/conv.php">Kalliope ANA</a> (ここから Kalliope のデータ解析の設定を決めますのだ。)</li>
         </ul>
-        <h2>Data Directory</h2>
-        <ul>
+	<h2>Data Directory</h2>
+	<ul>
+        Run summary や各 run の JSROOT を見れますのだ。
         </ul>
 EOF
 
