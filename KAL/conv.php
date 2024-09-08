@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     echo "<h2 class='mb-0'>Parameters Set: </h2>";
     echo "</div>";
     echo "<div class='card-body'>";
-    echo "<pre class='bg-light p-3 rounded'>";
+    echo "<pre class='bg-primary text-white p-3 rounded'>";
     echo "<strong>selected_dir:</strong> $data_dir/\n";
     echo "<strong>ftree:</strong> $ftree\n";
     echo "<strong>runN:</strong> $runN\n";
