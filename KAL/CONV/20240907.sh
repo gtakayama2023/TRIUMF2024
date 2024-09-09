@@ -16,6 +16,13 @@ selected_dir=""
 #selected_subdir=""
 runN_choice=""
 ONLINE_FLAG=0  # New ONLINE_FLAG default
+DC_mode=-1
+th_xtCurve_min=800;
+th_xtCurve_max=1500;
+th_tracking_min=700;
+th_tracking_max=1600;
+eventNum=10000;
+target_dir=""
 
 # Function to save current settings to load file
 save_to_load() {
@@ -29,6 +36,12 @@ save_to_load() {
     #echo "selected_subdir=\"$selected_subdir\"" >> $HISTORY_FILE
     echo "runN_choice=\"$runN_choice\"" >> $HISTORY_FILE
     echo "ONLINE_FLAG=$ONLINE_FLAG" >> $HISTORY_FILE  # Save ONLINE_FLAG
+    echo "DC_mode=$DC_mode" >> $HISTORY_FILE
+    echo "th_xtCurve_min=$th_xtCurve_min" >> $HISTORY_FILE
+    echo "th_xtCurve_max=$th_xtCurve_max" >> $HISTORY_FILE
+    echo "th_tracking_min=$th_tracking_min" >> $HISTORY_FILE
+    echo "th_tracking_max=$th_tracking_max" >> $HISTORY_FILE
+    echo "eventNum=$eventNum" >> $HISTORY_FILE
 }
 
 # Check if command-line arguments are provided
@@ -38,6 +51,10 @@ if [ "$#" -gt 0 ]; then
         if [ -f "$HISTORY_FILE" ]; then
             source "$HISTORY_FILE"
             echo "Loaded previous settings from $HISTORY_FILE"
+            target_dir=${selected_dir#../RAW/}
+            target_dir=${target_dir%/}
+            echo "Selected directory: $selected_dir"
+            echo "Target directory: $target_dir"
         else
             echo "No load file found."
             exit 1
@@ -58,9 +75,34 @@ else
     echo "3: Check Channel Setting"               
     echo "4: Check Real Channel Assign"               
     echo "5: rawdata2root"               
-    echo "6: Test NIMTDC2root"               
-    echo "7: DC Test"
+    echo "6: Test NIMTDC2root" 
+    echo "7: DC Test"              
     read -p "Type No.: " choice
+
+    echo "Selected choice: $choice"
+
+    if [[ "$choice" == "7" ]]; then
+        echo "DC Test"
+        target_dir="DC_TEST"
+
+        echo "Please select run number:"
+        read -p "Type No.: " runN
+
+        echo "Please select run mode:"
+        echo "0: raw mode"
+        echo "1: sup mode"
+        read -p "Type No.: " DC_mode
+        if [ "$DC_mode" == "1" ]; then
+            echo "Sup mode"
+
+            echo "Please select parameters:"
+            read -p "Threshold for x-t curve (min): " th_xtCurve_min
+            read -p "Threshold for x-t curve (max): " th_xtCurve_max
+            read -p "Threshold for tracking (min) : " th_tracking_min
+            read -p "Threshold for tracking (max) : " th_tracking_max
+            read -p "Number of events             : " eventNum
+        fi
+    fi
 
     if [[ "$choice" == "0" || "$choice" == "1" || "$choice" == "2" ]]; then
         read -p "Read NIM-TDC? [0: No, 1: Yes] : " fNIM
@@ -85,6 +127,62 @@ else
     fi
 fi
 
+echo "target_dir: $target_dir"
+echo "DC_mode: $DC_mode"
+
+if [[ "$target_dir" == "DC_TEST" && "$DC_mode" == "0" ]]; then
+    echo "Raw mode"
+
+    analysis_dir="/home/kal-dc-ana/RP1212/ana/RP1212/vecvec"
+    echo "Selected directory: $analysis_dir"
+    cd $analysis_dir
+    
+    root -l -b -q 'decodeRun.C('$runN')'
+    ./rawmode.sh $runN
+    source_dir="/var/www/html/JSROOT_ORG/"
+    base_file_name=$(printf "run_%04d_raw" "$runN")
+    target_dir="/home/kal-dc-ana/EXP/TRIUMF/2024/ROOT/DC_TEST/"
+    cp -r "${source_dir}${base_file_name}.root" $target_dir
+    echo "File copied to $target_dir"
+    base_file_name_MSE=$(printf "MSE%06d" "$runN")
+    mv "${target_dir}${base_file_name}.root" "${target_dir}${base_file_name_MSE}.root"
+    echo "File renamed to $base_file_name_MSE"
+    cd $target_dir
+    touch "${base_file_name_MSE}.html"
+    cd /home/kal-dc-ana/EXP/TRIUMF/2024/ANA
+    echo "begin send.sh"
+    ./KAL/send.sh "DC_TEST"
+    echo "end send.sh"
+    exit 0
+fi
+
+if [[ "$target_dir" == "DC_TEST" && "$DC_mode" == "1" ]]; then
+    echo "Sup mode"
+
+    analysis_dir="/home/kal-dc-ana/RP1212/ana/RP1212/vecvec"
+    echo "Selected directory: $analysis_dir"
+    cd $analysis_dir
+    
+    root -l -b -q 'decodeRun.C('$runN')'
+    ./supmode.sh $runN $th_xtCurve_min $th_xtCurve_max $th_tracking_min $th_tracking_max $eventNum
+    source_dir="/var/www/html/JSROOT_ORG/"
+    base_file_name=$(printf "run_%04d_sup" "$runN")
+    target_dir="/home/kal-dc-ana/EXP/TRIUMF/2024/ROOT/DC_TEST/"
+    cp -r ${source_dir}${base_file_name}.root $target_dir
+    echo "File copied to $target_dir"
+    base_file_name_MSE=$(printf "MSE%06d" "$runN")
+    mv ${target_dir}${base_file_name}.root ${target_dir}${base_file_name_MSE}.root
+    echo "File renamed to $file_name_MSE"
+    cd $target_dir
+    touch "${file_name_MSE}.html"
+    cd /home/kal-dc-ana/EXP/TRIUMF/2024/ANA
+    echo "begin send.sh"
+    ./KAL/send.sh "DC_TEST"
+    echo "end send.sh"
+    exit 0
+fi
+
+
 # Select directory if not provided as a command-line argument
 if [ -z "$selected_dir" ]; then
     dirs=($(ls -d $RAW_DIR/*/))
@@ -95,6 +193,8 @@ if [ -z "$selected_dir" ]; then
     read -p "Select directory: " dir_choice
     selected_dir=${dirs[$dir_choice]}
 fi
+
+
 
 # Select subdirectory if not provided as a command-line argument
 #if [ -z "$selected_subdir" ]; then

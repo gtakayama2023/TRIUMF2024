@@ -226,7 +226,7 @@ EOF
 
         elif [[ "$file" == *.html ]]; then
             # Add HTML files to the temporary HTML entries list
-            echo "<tr><td>$base_name</td><td><a href=\"$base_url231$dir/$base_name\">$base_name</a></td><td><a href=\"$base_url232$dir/${base_name%.html}.cgi\">${base_name%.html}.cgi</a></td></tr>" >> "$html_entries"
+            echo "<tr><td>$base_name</td><td><a href=\"$base_url232$dir/$base_name\">$base_name</a></td><td><a href=\"$base_url232$dir/${base_name%.html}.cgi\">${base_name%.html}.cgi</a></td></tr>" >> "$html_entries"
         fi
     fi
 done
@@ -307,6 +307,7 @@ cat <<EOF > "$main_index_html"
 	    <li><a href="https://docs.google.com/document/d/13fUyKNljUS0DHTU0ejrSJgy6c_CmIjeES9y-XU0g_1A/edit#heading=h.x045u3w4ja0l"> Online Logbook</a></li>
 	    <li><a href="https://github.com/kyasuda0820/TRIUMF2024_DC">DC Anlysis (GitHub Repository)</a></li>
 	    <li><a href="https://github.com/gtakayama2023/TRIUMF2024">Kalliope Analysis (GitHub Repository)</a></li>
+	    <li><a href="https://github.com/gtakayama2023/TRIUMF2024_KAL_DAQ">Kalliope DAQ (GitHub Repository)</a></li>
 	</ul>
         <h2>DAQ</h2>
         <ul>

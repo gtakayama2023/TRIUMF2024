@@ -184,7 +184,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   ofstream outfile("./txt/ThDAC.txt");
   ofstream noisefile(Form("./TXT/%s/MSE%06d_%02d.csv", path.c_str(), runN, SCAN_N));
   ofstream ofNevent(Form("./txt/Nevent_run%d.txt", runN));
-  //ofstream ofEvtMatch(Form("./txt/EvtMatch_run%d.txt", runN));
+  ofstream ofEvtMatch(Form("./txt/EvtMatch_run%d.txt", runN));
   cout << Form("./TXT/%s/MSE%06d_%02d.csv", path.c_str(), runN, SCAN_N) << endl;
 
   if (SCAN_FLAG) fNIM = 0;
