@@ -5,11 +5,11 @@ void configureIP(int IP, int &xy, int &ud, int &oi, int &ch_offset, int &Layer_N
   case 0:  xy=0; ud=0; oi=0; ch_offset=0; Layer_No=0 ; break;
   case 1:  xy=0; ud=0; oi=0; ch_offset=1; Layer_No=0 ; break;
   case 2:  xy=1; ud=0; oi=0; ch_offset=0; Layer_No=1 ; break;
-  case 3:  xy=1; ud=0; oi=0; ch_offset=1; Layer_No=1 ; break;
-  case 4:  xy=0; ud=0; oi=1; ch_offset=0; Layer_No=0 ; break;
-  case 5:  xy=0; ud=1; oi=1; ch_offset=1; Layer_No=0 ; break;
-  case 6:  xy=1; ud=0; oi=1; ch_offset=0; Layer_No=1 ; break;
-  case 7:  xy=1; ud=1; oi=1; ch_offset=1; Layer_No=1 ; break;
+  case 3:  xy=1; ud=0; oi=0; ch_offset=1; Layer_No=1 ; break;  
+  case 4:  xy=0; ud=0; oi=1; ch_offset=0; Layer_No=0 ; break; // IP = 5, AB 0-15, CD 16-31
+  case 5:  xy=0; ud=1; oi=1; ch_offset=1; Layer_No=0 ; break; // IP = 6, EF 0-15, GH 16-31
+  case 6:  xy=1; ud=0; oi=1; ch_offset=0; Layer_No=1 ; break; // IP = 7, AB 0-15, CD 16-31
+  case 7:  xy=1; ud=1; oi=1; ch_offset=1; Layer_No=1 ; break; // IP = 8, EF 0-15, GH 16-31
   case 8:  xy=1; ud=1; oi=0; ch_offset=0; Layer_No=2 ; break;
   case 9:  xy=1; ud=1; oi=0; ch_offset=1; Layer_No=2 ; break;
   case 10: xy=0; ud=1; oi=0; ch_offset=0; Layer_No=3 ; break;

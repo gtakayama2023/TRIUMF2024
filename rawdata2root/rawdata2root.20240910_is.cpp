@@ -1,6 +1,6 @@
 //************************************************************************
 //    Kalliope, NIM-TDC Rawdata to Root for #M9999 @TRIUMF
-//    edit by S.Ishitani (Osaka University), 2024.09.07
+//    edit by S.Ishitani (Osaka University), 2024.09.10
 //************************************************************************
 
 #include <iterator>
@@ -1453,6 +1453,10 @@ TH1D* Assym_UD = new TH1D("Assym_UD", "Assym_UD", hNIM_L[0]->GetNbinsX(), 0, 10e
 TH1D* Assym_FB_subBG = new TH1D("Assym_FB_subBG", "Assym_FB_subBG", hNIM_L[0]->GetNbinsX(), 0, 10e3);
 TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->GetNbinsX(), 0, 10e3);
 
+// Assymetryのゼロ点を合わせるために0~2usの範囲でFitする関数を定義
+ TF1 *fAssym_FB = new TF1("fAssym_FB", "[0] + [1] * sin(x * [2] + [3])", 0, 2e3);
+ TF1 *fAssym_UD = new TF1("fAssym_UD", "[0] + [1] * sin(x * [2] + [3])", 0, 2e3);
+
     // フィット関数と新しいヒストグラムの配列を定義
     TF1* fBG[4];
     TH1F* hNIM_L_subBG[4];
@@ -1469,7 +1473,15 @@ TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->G
       // フィットした関数を引いた新しいヒストグラムを配列で作成
       hNIM_L_subBG[i] = (TH1F*)hNIM_L[i]->Clone(Form("hNIM_L_subBG_%d", i));
       hNIM_L_subBG[i]->Add(fBG[i], -1.0);  // フィットした関数を引く
-      
+
+      int t0_bin[i] = hNIM_L_subBG[i]->GetMaximumBin();
+      double t0[i] = hNIM_L_subBG[i]->GetBinCenter(t0_bin[i]);
+      cout << "t0[" << i << "] : " << t0[i] << endl;
+
+      double tMIN[i] = hNIM_L_subBG[i]->GetXaxis()->GetXmin();
+      double tMAX[i] = hNIM_L_subBG[i]->GetXaxis()->GetXmax();
+
+      hNIM_L_subBG[i]->GetXaxis()->SetLimits(tMIN - t0, tMAX - t0);      
       hNIM_L_subBG[i]->Write();  // ROOTファイルに保存する場合
     }
     
@@ -1537,6 +1549,9 @@ for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
         Assym_UD->SetBinContent(bin, assym_ud);
         Assym_UD->SetBinError(bin, error_ud);
     }
+
+    //fAssym_FB->SetParameters(0.0,0.5,1200,);
+    //fAssym_FB->SetParameters(1.7,0.5,1200,);
 }
 
  TCanvas * cAssym = new TCanvas(Form("cAssym"), Form("cAssym"), 1200, 600);

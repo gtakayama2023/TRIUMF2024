@@ -316,7 +316,6 @@ cat <<EOF > "$main_index_html"
         <h2>ANA</h2>
         <ul>
 	    <li><a href="http://142.90.154.231/JSROOT/EXP/TRIUMF/2024/ANA/conv.php">Kalliope ANA</a> (ここから Kalliope のデータ解析の設定を決めますのだ。)</li>
-        </ul>
 	<h2>Data Directory</h2>
 	<ul>
         Run summary や各 run の JSROOT を見れますのだ。
@@ -330,6 +329,17 @@ done
 
 # Close the HTML tags
 cat <<EOF >> "$main_index_html"
+        </ul>
+        <h2>JupyROOT</h2>
+	    <li><a href="http://142.90.154.231:8888/tree?">JupyROOT</a> (ここから好きな ROOT file を開いて自由に解析できますのだ。)</li>
+	    <p>以下の手順で起動してください:</p>
+	    <ul>
+	        <li>SSHでサーバーに接続:</li>
+	        <pre>ssh kal-dc-ana@142.90.154.231</pre>
+	        <li>パスワード: <strong>m20c</strong></li>
+	        <li>接続後、Jupyter Notebookを起動するには以下を実行:</li>
+	        <pre>> jn</pre>
+	    </ul>
         </ul>
     </main>
 </body>

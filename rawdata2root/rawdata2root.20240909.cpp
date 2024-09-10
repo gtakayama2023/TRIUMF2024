@@ -309,7 +309,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   int KalNum[12][32] = {0};
 
   int N_02event = 0;
-  const int hitNmax = 10; // Multiplicity Max
+  const int hitNmax = 5; // Multiplicity Max
   int ch = 0;
   vector < int > N_Sync(N_IP, 0);
 
@@ -498,7 +498,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   vector < TH1F * > hNIM_L;
   hNIM_L.resize(4);
   for (int jj = 0; jj < 4; jj++) {
-    hNIM_L[jj] = new TH1F(Form("hTDC_L_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TDC}_{Leading}; #it{TDC}_{Leading} [ns]; #it{counts}", jj), 7e3, -1e3, 7e4);
+    hNIM_L[jj] = new TH1F(Form("hTDC_L_NIM_ch%d", jj), Form("NIM_TDC ch%02d | #it{TDC}_{Leading}; #it{TDC}_{Leading} [ns]; #it{counts}", jj), 71e3, -1e3, 70e3);
   }
   //vector < vector < TH1F * >> hKAL_L;
   //hKAL_L.resize(N_IP);
@@ -569,10 +569,13 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   }
 
   // KAL - NIM_TDC
-  vector < TH2F * > hKAL_NIM2;
-  hKAL_NIM2.resize(N_IP);
-  for (int ii = 0; ii < N_IP; ii++) {
-    hKAL_NIM2[ii] = new TH2F(Form("hKAL_NIM_%02d", vecIP[ii]), Form("Kalliope(%02d) | #it{TDC}_{KAL} - #it{TDC}_{NIM}; ch; #it{TDC}_{KAL} - #it{TDC}_{NIM}", vecIP[ii]), 32, 0, 32, 1e3, -1e3, 1e3);
+  vector<vector < TH2F * >> hKAL_NIM2;
+  hKAL_NIM2.resize(2); 
+  for (int ii = 0; ii < 2; ii++) {
+    hKAL_NIM2[ii].resize(N_IP);
+    for (int jj = 0; jj < N_IP; jj++) {
+      hKAL_NIM2[ii][jj] = new TH2F(Form("hKAL_NIM_%02d_%02d", ii, vecIP[jj]), Form("Kalliope(%02d) | #it{TDC}_{KAL} - #it{TDC}_{NIM}; ch; #it{TDC}_{KAL} - #it{TDC}_{NIM}", vecIP[jj]), 32, 0, 32, 1e3, -2e3, 0e5);
+    }
   }
 
   // KAL - UP or Down
@@ -580,19 +583,19 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   for (int ii = 0; ii < 2; ii++) {
     for (int jj = 0; jj < 2; jj++) {
       for (int kk = 0; kk < 2; kk++) {
-        hValid[ii][jj][kk] = new TH2F(Form("hValid_ud%02d_xy%02d_oi%02d", ii, jj, kk), Form("#it{TDC}_{KAL} - #it{TDC}_{NIM} (ud: %02d | xy: %02d | oi: %02d); ch; #it{TDC}_{KAL} - #it{TDC}_{NIM}", ii, jj, kk), 64, 0, 64, 1e3, -1e3, 1e3);
+        hValid[ii][jj][kk] = new TH2F(Form("hValid_ud%02d_xy%02d_oi%02d", ii, jj, kk), Form("#it{TDC}_{KAL} - #it{TDC}_{NIM} (ud: %02d | xy: %02d | oi: %02d); ch; #it{TDC}_{KAL} - #it{TDC}_{NIM}", ii, jj, kk), 64, 0, 64, 1e3, -2e3, 0e5);
       }
     }
   }
 
   //====== Histgram for Fiber ======
   #ifdef TRACKING_ON
-  TH2F * hFiber_out[2];
-  hFiber_out[0] = new TH2F("hFiber_out_up", "hFiber_out_up; x[mm]; y[mm]", 64, -32, 32, 54, -32, 32);
-  hFiber_out[1] = new TH2F("hFiber_out_dn", "hFiber_out_dn; x[mm]; y[mm]", 64, -32, 32, 64, -32, 32);
   TH2F * hFiber_in[2];
-  hFiber_in[0] = new TH2F("hFiber_in_up", "hFiber_in_up; x[mm]; y[mm]", 32, -16, 16, 32, -16, 16);
-  hFiber_in[1] = new TH2F("hFiber_in_dn", "hFiber_in_dn; x[mm]; y[mm]", 32, -16, 16, 32, -16, 16);
+  hFiber_in[0] = new TH2F("hFiber_in_up", "hFiber_in_up; x[mm]; y[mm]", 36, -36, 36, 36, -36, 36);
+  hFiber_in[1] = new TH2F("hFiber_in_dn", "hFiber_in_dn; x[mm]; y[mm]", 36, -36, 36, 36, -36, 36);
+  TH2F * hFiber_out[2];
+  hFiber_out[0] = new TH2F("hFiber_out_up", "hFiber_out_up; x[mm]; y[mm]", 36, -36, 36, 36, -36, 36);
+  hFiber_out[1] = new TH2F("hFiber_out_dn", "hFiber_out_dn; x[mm]; y[mm]", 36, -36, 36, 36, -36, 36);
 
   TH2F * hSample_Projection = new TH2F("hSample_Projection", "hSample_Projection; x[mm]; y[mm]", 100, -25, 25, 100, -25, 25);
   TH2F * hSample_Plane = new TH2F("hSample_Plane", "hSample_Plane; x[mm]; y[mm]", 100, -25, 25, 100, -25, 25);
@@ -852,7 +855,9 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
     for (int nIP = 0; nIP < N_IP; nIP++) {
       //===== For Reline Up ======
-      configureIP(nIP, xy, ud, oi, ch_offset, Layer_No);
+      configureIP(vecIP[nIP]-1, xy, ud, oi, ch_offset, Layer_No);
+      //cout << Form("hogehoge, IP: %02d, ud: %02d", vecIP[nIP], ud) << endl;
+      //cout << Form("hogehoge| xy: %02d, ud: %02d, oi: %02d, ch_offset: %02d, Layer_No: %02d", xy, ud, oi, ch_offset, Layer_No) << endl;
       //===== Start Reading each Rawdata ======
       while (!rawdata[nIP].eof()  && !Stop_KAL[nIP] ) {
         //===== SKIP_FLAG =====
@@ -981,7 +986,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
               Traw_KAL_num[nIP][0][ch]++;
               Traw_KAL_num_total[nIP][0][ch]++;
             }
-	    KalNum[nIP][ch]++;
+	          KalNum[nIP][ch]++;
           }
           if (Header == 4) { // Trailing Edge (0x04 event)
             ch = (data >> 16) & 0x000000ff;
@@ -999,7 +1004,9 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
                 int fiber_ch = ch + ch_offset * 32;
                 AssignFiber(fiber_ch, ud, oi);
                 Fiber_num[xy][ud][oi]++;
+                //cout << Form("hogehoge, IP: %02d, xy: %02d, ud: %02d", vecIP[nIP], xy, ud) << endl;
                 Fiber_L[xy][ud][oi][fiber_ch] = time_L;
+                //cout << Form("hogehoge, Fiber_L: %d", Fiber_L[xy][ud][oi][fiber_ch]) << endl;
                 Fiber_T[xy][ud][oi][fiber_ch] = time_T;
                 Fiber_CH_FLAG[xy][ud][oi][fiber_ch] = true;
                 Fiber_L_all[xy][ud][oi][fiber_ch][Traw_KAL_num[nIP][1][ch]] = time_L;
@@ -1190,6 +1197,17 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
         }
     }
 
+    bool NIM_HIT_FLAG = false;
+    for (int ii = 0; ii < 4; ii++) {
+      for (int jj = 0; jj < hitNmax; jj++) {
+        NIM_HIT_FLAG |= Traw_NIM_L[ii][jj] > 0;
+      }
+    }
+    if (!ONLINE_FLAG && NIM_HIT_FLAG){
+      cout << "continue (hogehoge)" << endl;
+      continue;
+    } 
+
     //===== Filling data ==========================================================================================
     if (FILL_FLAG && !SKIP_FLAG_new) {
 
@@ -1216,7 +1234,8 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
             hKAL_TOT2[nIP] -> Fill(ii, Traw_KAL_TOT[nIP][ii][jj]);
           }
           hKAL_Multi[nIP] -> Fill(ii, Traw_KAL_num[nIP][0][ii]);
-          if (Traw_KAL_L_valid[nIP][ii] > 0 && Traw_NIM_L_valid[1] > 0) hKAL_NIM2[nIP] -> Fill(ii, Traw_KAL_L_valid[nIP][ii] - Traw_NIM_L_valid[1]);
+          if (Traw_KAL_L_valid[nIP][ii] > 0 && Traw_NIM_L_valid[2] > 0) hKAL_NIM2[0][nIP] -> Fill(ii, Traw_KAL_L_valid[nIP][ii] - Traw_NIM_L_valid[2]);
+          if (Traw_KAL_L_valid[nIP][ii] > 0 && Traw_NIM_L_valid[3] > 0) hKAL_NIM2[1][nIP] -> Fill(ii, Traw_KAL_L_valid[nIP][ii] - Traw_NIM_L_valid[3]);
           //if (Traw_KAL_L_valid[nIP][ii] > 0 && Traw_NIM_L_valid[1] > 0) cout << Form("nIP: %d, ch: %d, KAL_L: %d, NIM: %d", nIP, ii, Traw_KAL_L_valid[nIP][ii], Traw_NIM_L_valid[1]) << endl;
         }
         hdTS_KAL[nIP] -> Fill(dTS_KAL[nIP]);
@@ -1238,13 +1257,13 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
       };
       //====== Judge whether Tracking Available or not ======
       //====== Noise Cut by TOT & 4-Layer-Coincidence by Fiber_num ======
-  //TH2F * hFiber_L[2][2][2];
-  //TH2F * hFiber_T[2][2][2];
-  //TH2F * hFiber_TOT[2][2][2];
-  //for (int i = 0; i < 2; i++) { // x/y
-  //  for (int j = 0; j < 2; j++) { // up/dn
-  //    for (int k = 0; k < 2; k++) { // out/in
-        //hValid[ii][jj][kk] = new TH2F(Form("hValid_ud%02d_xy%02d_oi%02d", ii, jj, jj), Form("#it{TDC}_{KAL} - #it{TDC}_{NIM} (ud: %02d | xy: %02d | oi: %02d); ch; #it{TDC}_{KAL} - #it{TDC}_{NIM}", ii, jj, kk), 64, 0, 64, 1e3, -1e3, 1e3);
+      //TH2F * hFiber_L[2][2][2];
+      //TH2F * hFiber_T[2][2][2];
+      //TH2F * hFiber_TOT[2][2][2];
+      //for (int i = 0; i < 2; i++) { // x/y
+      //  for (int j = 0; j < 2; j++) { // up/dn
+      //    for (int k = 0; k < 2; k++) { // out/in
+      //hValid[ii][jj][kk] = new TH2F(Form("hValid_ud%02d_xy%02d_oi%02d", ii, jj, jj), Form("#it{TDC}_{KAL} - #it{TDC}_{NIM} (ud: %02d | xy: %02d | oi: %02d); ch; #it{TDC}_{KAL} - #it{TDC}_{NIM}", ii, jj, kk), 64, 0, 64, 1e3, -1e3, 1e3);
       for (int ud = 0; ud < 2; ud++) {
         for (int xy = 0; xy < 2; xy++) {
           for (int oi = 0; oi < 2; oi++) {
@@ -1253,8 +1272,11 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
             if (Fiber_num[xy][ud][oi] > 0 && Fiber_num[xy][ud][oi] < 2) {
               Fiber_FLAG[xy][ud][oi] = true;
               for (int ch = 0; ch < ch_max; ch++) {
-                for (int nhit = 0; nhit < hitNmax; nhit++) hValid[ud][xy][oi] -> Fill(ch, Fiber_L_all[xy][ud][oi][ch][nhit] - Traw_NIM_L[ud + 2][1]);
-                if (Fiber_CH_FLAG[xy][ud][oi]) {
+                if (Fiber_L[xy][ud][oi][ch] > 0 && Traw_NIM_L_valid[ud + 2] > 0) {
+                  hValid[ud][xy][oi] -> Fill(ch, Fiber_L[xy][ud][oi][ch] - Traw_NIM_L_valid[ud + 2]);
+                  Fiber_CH_FLAG[xy][ud][oi][ch] = true;
+                }
+                if (Fiber_CH_FLAG[xy][ud][oi][ch]) {
                   a[xy][oi] = (double) ch + 0.5 - ((double) ch_max / 2.0);
                 }
               }
@@ -1264,6 +1286,8 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
         // 4-Layer Coincidence
         Tracking_FLAG[ud] = (Fiber_FLAG[0][ud][0] && Fiber_FLAG[0][ud][1] && Fiber_FLAG[1][ud][0] && Fiber_FLAG[1][ud][1]);
       }
+
+      if (!Tracking_FLAG[0] && !Tracking_FLAG[1]) continue;
 
       //======= Start Tracking ======
       for (int ud = 0; ud < 2; ud++) {
@@ -1282,8 +1306,13 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
           // interpolate y1 & x2 using triangle simirality
           // z0 ~ z3 are defined in "setup.h"
-          y1 = y2 - ((y2 - y0) * (z2[ud] - z1[ud])) / (z2[ud] - z0[ud]);
+          y1 = y0 - ((y2 - y0) * (z2[ud] - z1[ud])) / (z2[ud] - z0[ud]);
+          y3 = y2 - ((y2 - y0) * (z2[ud] - z3[ud])) / (z2[ud] - z0[ud]);
+          x0 = x1 - ((x3 - x1) * (z3[ud] - z0[ud])) / (z3[ud] - z1[ud]);
           x2 = x3 - ((x3 - x1) * (z3[ud] - z2[ud])) / (z3[ud] - z1[ud]);
+
+          //cout << Form("x0: %6.2f, x1: %6.2f, x2: %6.2f, x3: %6.2f", x0, x1, x2, x3) << endl;
+          //cout << Form("y0: %6.2f, y1: %6.2f, y2: %6.2f, y3: %6.2f", y0, y1, y2, y3) << endl;
 
           // the vector equation of straight line L passing through two points, A and B
           // L = OA + t*AB = OA + t*(OB-OA) = (1-t)*OA + t*OB
@@ -1295,13 +1324,13 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
           y = (1 - t) * y1 + t * y2;
           z = (1 - t) * z1[ud] + t * z2[ud];
 
-          hFiber_out[ud] -> Fill(x3, y2);
-          hFiber_in[ud] -> Fill(x1, y0);
+          hFiber_in [ud] -> Fill(x3, y2);
+          hFiber_out[ud] -> Fill(x1, y0);
           hSample_Projection -> Fill(x, y);
           y = y / cos(theta);
           hSample_Plane -> Fill(x, y);
 
-          cout << "Tracking Available!!!!" << endl;
+          //cout << "Tracking Available!!!!" << endl;
           N_track++;
         }
       }
@@ -1829,18 +1858,31 @@ cAssym_subBG -> Write();
   TCanvas * cValid    = new TCanvas("----- Valid ------------------------------", "----- Valid ------------------------------", 1, 1);
   cValid -> Write();
 
-  TCanvas * cKAL_NIM2 = new TCanvas(Form("cKAL_NIM2"), Form("cKAL_NIM2"), 1200, 600);
-  cKAL_NIM2 -> Divide(col, row);
+  TCanvas * cKAL_NIM2_UP = new TCanvas(Form("cKAL_NIM2_UP"), Form("cKAL_NIM2_UP"), 1200, 600);
+  cKAL_NIM2_UP -> Divide(col, row);
   for (int ii = 0; ii < N_IP; ii++) {
-    cKAL_NIM2 -> cd(ii + 1);
+    cKAL_NIM2_UP -> cd(ii + 1);
     SetMargins();
-    hKAL_NIM2[ii] -> Draw("colz");
+    hKAL_NIM2[0][ii] -> Draw("colz");
     gPad -> SetLogz(ii + 1);
     gPad -> Update();
-    cKAL_NIM2 -> cd(ii + 1) -> Modified();
-    cKAL_NIM2 -> cd(ii + 1) -> Update();
+    cKAL_NIM2_UP -> cd(ii + 1) -> Modified();
+    cKAL_NIM2_UP -> cd(ii + 1) -> Update();
   }
-  cKAL_NIM2 -> Write();
+  cKAL_NIM2_UP -> Write();
+
+  TCanvas * cKAL_NIM2_DN = new TCanvas(Form("cKAL_NIM2_DN"), Form("cKAL_NIM2_DN"), 1200, 600);
+  cKAL_NIM2_DN -> Divide(col, row);
+  for (int ii = 0; ii < N_IP; ii++) {
+    cKAL_NIM2_DN -> cd(ii + 1);
+    SetMargins();
+    hKAL_NIM2[1][ii] -> Draw("colz");
+    gPad -> SetLogz(ii + 1);
+    gPad -> Update();
+    cKAL_NIM2_DN -> cd(ii + 1) -> Modified();
+    cKAL_NIM2_DN -> cd(ii + 1) -> Update();
+  }
+  cKAL_NIM2_DN -> Write();
   //================================================================================================== TDC ======
 
   //===== POS ===================================================================================================
