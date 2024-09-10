@@ -329,12 +329,12 @@ cat <<EOF >> "$main_index_html"
         </ul>
         <h2>JupyROOT</h2>
 	    <li><a href="http://142.90.154.231:8888/tree?">JupyROOT</a> (ここから好きな ROOT file を開いて自由に解析できますのだ。)</li>
-	    <p>Jupyter Notebook を開けない場合は以下の手順で起動してください:</p>
+	    <p>Jupyter Notebook を開けない場合は以下の手順で起動してくださいなのだ:</p>
 	    <ul>
-	        <li>SSHでサーバーに接続:</li>
+	        <li>SSHでサーバーに接続するのだ:</li>
 	        <pre>> ssh kal-dc-ana@142.90.154.231</pre>
 	        <li>パスワード: <strong>m20c</strong></li>
-	        <li>接続後、Jupyter Notebookを起動するには以下を実行:</li>
+	        <li>接続後、Jupyter Notebookを起動するには以下を実行するのだ:</li>
 	        <pre>> jn</pre>
 	    </ul>
         </ul>
