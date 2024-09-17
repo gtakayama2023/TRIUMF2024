@@ -317,6 +317,7 @@ cat <<EOF > "$main_index_html"
         <ul>
 	    <li><a href="http://142.90.154.231/JSROOT/EXP/TRIUMF/2024/ANA/conv.php">Kalliope ANA</a> (ここから Kalliope のデータ解析の設定を決めますのだ。)</li>
 	<h2>Run information & JSROOT</h2>
+        <li><a href="http://142.90.154.232/JSROOT/EXP/TRIUMF/2024/SlowControl/runsummary.cgi"> Runsummary</a></li>
 EOF
 
 # List directories under main destination directory and add links to each index.html

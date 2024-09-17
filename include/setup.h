@@ -13,7 +13,7 @@ const double z0[2] = {-L0,L0};
 const double z1[2] = {-L1,L1};
 const double z2[2] = {-L2,L2};
 const double z3[2] = {-L3,L3};
-const double deg = 45.0;
+const double deg = 45;
 const double theta = M_PI * deg / 180.0;
 
 #endif

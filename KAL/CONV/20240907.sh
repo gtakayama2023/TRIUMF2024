@@ -130,58 +130,61 @@ fi
 echo "target_dir: $target_dir"
 echo "DC_mode: $DC_mode"
 
-if [[ "$target_dir" == "DC_TEST" && "$DC_mode" == "0" ]]; then
-    echo "Raw mode"
-
-    analysis_dir="/home/kal-dc-ana/RP1212/ana/RP1212/vecvec"
-    echo "Selected directory: $analysis_dir"
-    cd $analysis_dir
-    
-    root -l -b -q 'decodeRun.C('$runN')'
-    ./rawmode.sh $runN
-    source_dir="/var/www/html/JSROOT_ORG/"
-    base_file_name=$(printf "run_%04d_raw" "$runN")
-    target_dir="/home/kal-dc-ana/EXP/TRIUMF/2024/ROOT/DC_TEST/"
-    cp -r "${source_dir}${base_file_name}.root" $target_dir
-    echo "File copied to $target_dir"
-    base_file_name_MSE=$(printf "MSE%06d" "$runN")
-    mv "${target_dir}${base_file_name}.root" "${target_dir}${base_file_name_MSE}.root"
-    echo "File renamed to $base_file_name_MSE"
-    cd $target_dir
-    touch "${base_file_name_MSE}.html"
-    cd /home/kal-dc-ana/EXP/TRIUMF/2024/ANA
-    echo "begin send.sh"
-    ./KAL/send.sh "DC_TEST"
-    echo "end send.sh"
-    exit 0
+if [[ "$target_dir" == "DC_TEST" || "$target_dir" == "DC_RUN" ]]; then
+    if [ "$DC_mode" == "0" ]; then
+	echo "Raw mode"
+	
+	analysis_dir="/home/kal-dc-ana/RP1212/ana/RP1212/vecvec"
+	echo "Selected directory: $analysis_dir"
+	cd $analysis_dir
+	
+	root -l -b -q 'decodeRun.C('$runN')'
+	./rawmode.sh $runN
+	source_dir="/var/www/html/JSROOT_ORG/"
+	base_file_name=$(printf "run_%04d_raw" "$runN")
+	target_dir="/home/kal-dc-ana/EXP/TRIUMF/2024/ROOT/DC_TEST/"
+	cp -r "${source_dir}${base_file_name}.root" $target_dir
+	echo "File copied to $target_dir"
+	base_file_name_MSE=$(printf "MSE%06d" "$runN")
+	mv "${target_dir}${base_file_name}.root" "${target_dir}${base_file_name_MSE}.root"
+	echo "File renamed to $base_file_name_MSE"
+	cd $target_dir
+	touch "${base_file_name_MSE}.html"
+	cd /home/kal-dc-ana/EXP/TRIUMF/2024/ANA
+	echo "begin send.sh"
+	./KAL/send.sh "DC_TEST"
+	echo "end send.sh"
+	exit 0
+    fi
 fi
 
-if [[ "$target_dir" == "DC_TEST" && "$DC_mode" == "1" ]]; then
-    echo "Sup mode"
+if [[ "$target_dir" == "DC_TEST" || "$target_dir" == "DC_RUN" ]]; then
+    if [ "$DC_mode" == "1" ]; then
+	echo "Sup mode"
 
-    analysis_dir="/home/kal-dc-ana/RP1212/ana/RP1212/vecvec"
-    echo "Selected directory: $analysis_dir"
-    cd $analysis_dir
-    
-    root -l -b -q 'decodeRun.C('$runN')'
-    ./supmode.sh $runN $th_xtCurve_min $th_xtCurve_max $th_tracking_min $th_tracking_max $eventNum
-    source_dir="/var/www/html/JSROOT_ORG/"
-    base_file_name=$(printf "run_%04d_sup" "$runN")
-    target_dir="/home/kal-dc-ana/EXP/TRIUMF/2024/ROOT/DC_TEST/"
-    cp -r ${source_dir}${base_file_name}.root $target_dir
-    echo "File copied to $target_dir"
-    base_file_name_MSE=$(printf "MSE%06d" "$runN")
-    mv ${target_dir}${base_file_name}.root ${target_dir}${base_file_name_MSE}.root
-    echo "File renamed to $file_name_MSE"
-    cd $target_dir
-    touch "${file_name_MSE}.html"
-    cd /home/kal-dc-ana/EXP/TRIUMF/2024/ANA
-    echo "begin send.sh"
-    ./KAL/send.sh "DC_TEST"
-    echo "end send.sh"
-    exit 0
+	analysis_dir="/home/kal-dc-ana/RP1212/ana/RP1212/vecvec"
+	echo "Selected directory: $analysis_dir"
+	cd $analysis_dir
+	
+	root -l -b -q 'decodeRun.C('$runN')'
+	./supmode.sh $runN $th_xtCurve_min $th_xtCurve_max $th_tracking_min $th_tracking_max $eventNum
+	source_dir="/var/www/html/JSROOT_ORG/"
+	base_file_name=$(printf "run_%04d_sup" "$runN")
+	target_dir="/home/kal-dc-ana/EXP/TRIUMF/2024/ROOT/DC_TEST/"
+	cp -r ${source_dir}${base_file_name}.root $target_dir
+	echo "File copied to $target_dir"
+	base_file_name_MSE=$(printf "MSE%06d" "$runN")
+	mv ${target_dir}${base_file_name}.root ${target_dir}${base_file_name_MSE}.root
+	echo "File renamed to $file_name_MSE"
+	cd $target_dir
+	touch "${file_name_MSE}.html"
+	cd /home/kal-dc-ana/EXP/TRIUMF/2024/ANA
+	echo "begin send.sh"
+	./KAL/send.sh "DC_TEST"
+	echo "end send.sh"
+	exit 0
+    fi
 fi
-
 
 # Select directory if not provided as a command-line argument
 if [ -z "$selected_dir" ]; then

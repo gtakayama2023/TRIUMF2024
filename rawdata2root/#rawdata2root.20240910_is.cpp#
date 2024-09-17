@@ -1552,11 +1552,11 @@ for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
 
     //fAssym_FB->SetParameters(0.0,0.5,1200,);
     //fAssym_FB->SetParameters(1.7,0.5,1200,);
- }
+}
 
  TCanvas * cAssym = new TCanvas(Form("cAssym"), Form("cAssym"), 1200, 600);
- cAssym -> Divide(2,1);
- cAssym -> cd(1);
+cAssym -> Divide(2,1);
+cAssym -> cd(1);
 SetMargins();
 Assym_FB->Rebin(4);
 Assym_FB->Draw("E");  // "E" オプションを追加してエラーバーを表示
@@ -2290,7 +2290,7 @@ void Check_Real_CH() {
     int nIP = i + 1;
     //if(runN<10) ifname[i]=Form("../RAW/%s/MSE00000%d_192.168.10.%d.rawdata",path.c_str(),runN,nIP);
     //else ifname[i]=Form("../RAW/%s/MSE0000%d_192.168.10.%d.rawdata",path.c_str(),runN,nIP);
-    ifname[i] = Form("../RAW/test_noise/MSE000000_192.168.10.%d.rawdata", nIP);
+    ifname[i] = Form("../RAW/NOISE/MSE0000052_192.168.10.%d.rawdata", nIP);
     rawdata[i].open(ifname[i].c_str(), ios::binary);
 
     if (!rawdata[i]) {

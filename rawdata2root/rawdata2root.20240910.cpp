@@ -19,6 +19,9 @@
 #include <TH2.h>
 #include <TStopwatch.h>
 #include <TCanvas.h>
+#include "TVector3.h"
+#include "TRotation.h"
+#include "TMatrix.h"
 
 #include "./include/configureIP.h"
 #include "./include/setup.h"
@@ -417,6 +420,9 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
   for (int i = 0; i < 12; i++) SKIP_FLAG[i] = false;
 
+  double x0 = -999.0, x1 = -999.0, x2 = -999.0, x3 = -999.0;
+  double y0 = -999.0, y1 = -999.0, y2 = -999.0, y3 = -999.0;
+
   //===== Define Tree ======
   //===== Time Stamp ======
   //===== NIM-TDC =====
@@ -434,6 +440,11 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
   tree -> Branch("TS_diff", & TS_diff);
   tree -> Branch("dTS_diff", & dTS_diff);
+  tree -> Branch("x1", &x1, "x1/I");
+  tree -> Branch("x3", &x3, "x3/I");
+  tree -> Branch("y0", &y0, "y0/I");
+  tree -> Branch("y2", &y2, "y2/I");
+  tree -> Branch("ud", &ud, "ud/I");
 
   //===== Rawdata =====
   tree -> Branch("Traw_NIM_L", Traw_NIM_L, "Traw_NIM_L  [32][10]/I");
@@ -603,8 +614,12 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   hFiber_out[0] = new TH2F("hFiber_out_up", "hFiber_out_up; x[mm]; y[mm]", 36, -36, 36, 36, -36, 36);
   hFiber_out[1] = new TH2F("hFiber_out_dn", "hFiber_out_dn; x[mm]; y[mm]", 36, -36, 36, 36, -36, 36);
 
-  TH2F * hSample_Projection = new TH2F("hSample_Projection", "hSample_Projection; x[mm]; y[mm]", 100, -25, 25, 100, -25, 25);
-  TH2F * hSample_Plane = new TH2F("hSample_Plane", "hSample_Plane; x[mm]; y[mm]", 100, -25, 25, 100, -25, 25);
+  TH2F * hSample_Projection = new TH2F("hSample_Projection", "hSample_Projection; x[mm]; y[mm]", 100, -35, 35, 100, -35, 35);
+  TH2F * hSample_Plane = new TH2F("hSample_Plane", "hSample_Plane; x[mm]; y[mm]", 100, -35, 35, 100, -35, 35);
+  TH2F * hSample[2] = {
+    new TH2F("hSample_UP", "Upper Trakcer; x [mm]; y [mm]", 100, -50, 50, 100, -50, 50),
+    new TH2F("hSample_DN", "Lower Trakcer; x [mm]; y [mm]", 100, -50, 50, 100, -50, 50),
+  };
 
   TH2F * hFiber_L[2][2][2];
   TH2F * hFiber_T[2][2][2];
@@ -1111,6 +1126,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
       double rate = N_event[0] / Trun;
       cout << fixed << setprecision(1) << "Timer :  " << Trun << " s, " <<
         "Execution Rate : " << (int) rate << " cps, " <<
+        "Event Rate     : " << (int) (double) N_event[0] / TS_KAL[0] << " cps, " <<
         "Reading        : " << N_event[0] << flush << " events" << "\r";
     }
     //if (KAL_ONLINE_FLAG) if (N_event[0] > 1000) break;
@@ -1302,12 +1318,19 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
         for (int ud = 0; ud < 2; ud++)
           for (int oi = 0; oi < 2; oi++) Fiber_FLAG[xy][ud][oi] ? N_Layer[xy][ud][oi] ++: N_Layer[xy][ud][oi] += 0;
 
+      if (ftree) tree -> Fill();
       if (!Tracking_FLAG[0] && !Tracking_FLAG[1]) continue;
 
       //======= Start Tracking ======
       for (int ud = 0; ud < 2; ud++) {
-        double x0 = -999.0, x1 = -999.0, x2 = -999.0, x3 = -999.0;
-        double y0 = -999.0, y1 = -999.0, y2 = -999.0, y3 = -999.0;
+        x0 = -999.0; 
+	      x1 = -999.0; 
+	      x2 = -999.0; 
+	      x3 = -999.0;
+        y0 = -999.0;
+       	y1 = -999.0;
+       	y2 = -999.0;
+       	y3 = -999.0;
         double t = -999.0;
         double x = -999.0, y = -999.0, z = -999.0;
 
@@ -1317,14 +1340,33 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
           // Plane 1 : X-in  (x1,y1,z1)
           // Plane 2 : Y-out (x2,y2,z2)
           // Plane 3 : X-out (x3,y3,z3[ud])
-          x1 = a[0][0], x3 = a[0][1], y0 = a[1][0], y2 = a[1][1];
+          x1 = a[0][1], x3 = a[0][0], y0 = a[1][1], y2 = a[1][0];
+
+          //if( abs(x3 - x1) < 2 ) continue;
+          //if( abs(y2 - y0) < 2 ) continue;
 
           // interpolate y1 & x2 using triangle simirality
           // z0 ~ z3 are defined in "setup.h"
-          y1 = y0 - ((y2 - y0) * (z2[ud] - z1[ud])) / (z2[ud] - z0[ud]);
-          y3 = y2 - ((y2 - y0) * (z2[ud] - z3[ud])) / (z2[ud] - z0[ud]);
-          x0 = x1 - ((x3 - x1) * (z3[ud] - z0[ud])) / (z3[ud] - z1[ud]);
-          x2 = x3 - ((x3 - x1) * (z3[ud] - z2[ud])) / (z3[ud] - z1[ud]);
+          y1 = y0 + ((y2 - y0) * (z1[ud] - z0[ud])) / (z2[ud] - z0[ud]);
+          y3 = y2 + ((y2 - y0) * (z3[ud] - z2[ud])) / (z2[ud] - z0[ud]);
+          x0 = x1 + ((x3 - x1) * (z0[ud] - z1[ud])) / (z3[ud] - z1[ud]);
+          x2 = x3 + ((x3 - x1) * (z2[ud] - z3[ud])) / (z3[ud] - z1[ud]);
+
+	  TVector3 n0(0, 0, 1); // z up
+	  TRotation rotation;
+	  rotation.RotateX( theta );
+
+	  TRotation rotation_inv;
+	  rotation_inv.RotateX( -theta );
+
+	  TVector3 n1 = rotation * n0;
+
+	  TVector3 r0 ( x0, y0, z0[ud] );
+	  TVector3 r1 ( x1, y1, z1[ud] );
+
+	  t = - n1 * r0 / ( n1 * ( r0 - r1 ) );
+	  TVector3 rs = r0 + t * ( r0 - r1 );
+	  TVector3 rs0 = rotation_inv * rs;
 
           //cout << Form("x0: %6.2f, x1: %6.2f, x2: %6.2f, x3: %6.2f", x0, x1, x2, x3) << endl;
           //cout << Form("y0: %6.2f, y1: %6.2f, y2: %6.2f, y3: %6.2f", y0, y1, y2, y3) << endl;
@@ -1332,18 +1374,26 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
           // the vector equation of straight line L passing through two points, A and B
           // L = OA + t*AB = OA + t*(OB-OA) = (1-t)*OA + t*OB
           // t is a parametric variable, calculated by following equation.
-          t = (z1[ud] - y1 * tan(theta)) / ((z1[ud] - y1 * tan(theta)) - (z2[ud] - y2 * tan(theta)));
+          //t = (z1[ud] - y1 * tan(theta)) / ((z1[ud] - y1 * tan(theta)) - (z2[ud] - y2 * tan(theta)));
+	  //t = ( -y0 * sin(theta) + z0[ud] * cos(theta) ) / ( (y2 - y0) * sin(theta) + (z2[ud] - z0[ud]) * cos(theta) );
 
           // calculate the position in sample plane
-          x = (1 - t) * x1 + t * x2;
-          y = (1 - t) * y1 + t * y2;
-          z = (1 - t) * z1[ud] + t * z2[ud];
+          //x = (1 - t) * x1     + t * x2;
+          //y = (1 - t) * y1     + t * y2;
+          //z = (1 - t) * z1[ud] + t * z2[ud];
+	  //x = x0 - t * ( x2 - x0 );
+	  //y = y0 - t * ( y2 - y0 );
+	  //z = z0 - t * ( z2[ud] - z0[ud] );
 
-          hFiber_in [ud] -> Fill(x3, y2);
-          hFiber_out[ud] -> Fill(x1, y0);
-          hSample_Projection -> Fill(x, y);
-          y = y / cos(theta);
+	  x = rs0.X();
+	  y = rs0.Y();
+
+          hFiber_in [ud]     -> Fill(x1, y0);
+          hFiber_out[ud]     -> Fill(x3, y2);
+          hSample_Projection -> Fill(x,  y );
+          //y = y / cos(theta);
           hSample_Plane -> Fill(x, y);
+	        hSample[ud] -> Fill(x, y);
 
           //cout << "Trackable!!!!" << endl;
           N_trackable++;
@@ -1365,7 +1415,6 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
       //for (int ii = 0; ii < 12; ii++) N_event[ii] ++;
       //for (int ii = 0; ii < 1;  ii++) N_NIM_event ++;
       #endif
-      if (ftree) tree -> Fill();
     } //End of Fill Loop
   }
 
@@ -1939,13 +1988,13 @@ cAssym_subBG -> Write();
 
   cSample -> cd(1);
   SetMargins();
-  hSample_Projection -> Draw("colz");
+  hSample[0] -> Draw("colz");
   gPad -> SetLogz(1); gPad -> Update();
   cSample -> cd(1) -> Modified(); cSample -> cd(1) -> Update();
 
   cSample -> cd(2);
   SetMargins();
-  hSample_Plane -> Draw("colz");
+  hSample[1] -> Draw("colz");
   gPad -> SetLogz(1); gPad -> Update();
   cSample -> cd(2) -> Modified(); cSample -> cd(2) -> Update();
 
@@ -2195,14 +2244,17 @@ cAssym_subBG -> Write();
   cout << "--------------------------------------------------------------------------------" << endl;
   cout << "------ Statistics --------------------------------------------------------------" << endl;
   cout << "--------------------------------------------------------------------------------" << endl;
-  cout << "Total Number of Events : " << Form("%6.0d", N_event[0]) << " events " << endl;
-  cout << "Total Run time         : " << Form("%6.1f", Trun_total) << " s      " << endl;
+  cout << "Read Number of Events  : " << Form("%6.0d", N_event[0]) << " events " << endl;
+  cout << "Total Number of Events : " << Form("%6.0f", (double) N_event[0]/(1-READ_RATIO)) << " events " << endl;
+  cout << "Read Run time          : " << Form("%6.1f", Trun_total) << " s      " << endl;
+  cout << "Total Run time         : " << Form("%6.1f", Trun_total/(1-READ_RATIO)) << " s      " << endl;
   cout << "Event rate             : " << Form("%6.1f", rate_run) << " (/s)   " << endl;
   cout << "Mismatch event         : " << Form("%6.0f", SkipN) << " events " << endl;
   cout << "Mismatch ratio         : " << Form("%6.2f", rate_mis * 100) << " %      " << endl;
   cout << "Total Execution time   : " << Form("%6.1f", Texe_total) << " s      " << endl;
   cout << "Processing speed       : " << Form("%6.1f", rate_exe) << " (/s)   " << endl;
-  cout << "Total Trackable Events : " << Form("%6.0d", N_trackable) << " events " << endl;
+  cout << "Read Trackable Events  : " << Form("%6.0d", N_trackable) << " events " << endl;
+  cout << "Total Trackable Events : " << Form("%6.0f", (double) N_trackable/(1-READ_RATIO)) << " events " << endl;
   cout << "Trackable Event Ratio  : " << Form("%6.1f", rate_track * 100) << " %      " << endl;
   cout << "--------------------------------------------------------------------------------" << endl;
   cout << "------ Efficiency --------------------------------------------------------------" << endl;
@@ -2231,9 +2283,22 @@ cAssym_subBG -> Write();
   stat_file << "        <p><span class=\"label\">Processing Speed:      </span> " << Form("%6.1f", rate_exe) << " cps</p>   \n";
   stat_file << "        <p><span class=\"label\">Total Trackable Events:</span> " << Form("%6.0d", N_trackable) << " events</p>\n";
   stat_file << "        <p><span class=\"label\">Trackable Event Ratio: </span> " << Form("%6.1f", (double) rate_track * 100) << " %</p>\n";
+  // HTML 形式で stat_file に Efficiency を記録する
+  stat_file << "        <h2>Efficiency Statistics</h2>\n";
+  stat_file << "        <p><span class=\"label\">UP Counter:         </span> " << Form("%8d events", N_Positron[0]                                                           ) << "</p>\n";
+  stat_file << "        <p><span class=\"label\">X | UP | OUTER:      </span> " << Form("%8d events | %6.2f", N_Layer[0][0][0], (double) N_Layer[0][0][0] / N_Positron[0] * 100) << " %</p>\n";
+  stat_file << "        <p><span class=\"label\">Y | UP | OUTER:      </span> " << Form("%8d events | %6.2f", N_Layer[1][0][0], (double) N_Layer[1][0][0] / N_Positron[0] * 100) << " %</p>\n";
+  stat_file << "        <p><span class=\"label\">X | UP | INNER:      </span> " << Form("%8d events | %6.2f", N_Layer[0][0][1], (double) N_Layer[0][0][1] / N_Positron[0] * 100) << " %</p>\n";
+  stat_file << "        <p><span class=\"label\">Y | UP | INNER:      </span> " << Form("%8d events | %6.2f", N_Layer[1][0][1], (double) N_Layer[1][0][1] / N_Positron[0] * 100) << " %</p>\n";
+  stat_file << "        <p><span class=\"label\">DN Counter:         </span> " << Form("%8d events", N_Positron[1]                                                           ) << "</p>\n";
+  stat_file << "        <p><span class=\"label\">X | DN | OUTER:      </span> " << Form("%8d events | %6.2f", N_Layer[0][1][0], (double) N_Layer[0][1][0] / N_Positron[1] * 100) << " %</p>\n";
+  stat_file << "        <p><span class=\"label\">Y | DN | OUTER:      </span> " << Form("%8d events | %6.2f", N_Layer[1][1][0], (double) N_Layer[1][1][0] / N_Positron[1] * 100) << " %</p>\n";
+  stat_file << "        <p><span class=\"label\">X | DN | INNER:      </span> " << Form("%8d events | %6.2f", N_Layer[0][1][1], (double) N_Layer[0][1][1] / N_Positron[1] * 100) << " %</p>\n";
+  stat_file << "        <p><span class=\"label\">Y | DN | INNER:      </span> " << Form("%8d events | %6.2f", N_Layer[1][1][1], (double) N_Layer[1][1][1] / N_Positron[1] * 100) << " %</p>\n";
   stat_file << "    </div>\n";
   stat_file << "</body>\n";
   stat_file << "</html>\n";
+
 
   stat_file.close();
 

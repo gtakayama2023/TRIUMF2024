@@ -20,8 +20,8 @@
 #include <TStopwatch.h>
 #include <TCanvas.h>
 
-#include "./include/configureIP.h"
-#include "./include/setup.h"
+//#include "./include/configureIP.h"
+//#include "./include/setup.h"
 
 #define TEST_ON // ON: Read only 100k events
 #define TRACKING_ON  // ON: Tracking
@@ -162,7 +162,7 @@ void SetMargins(Double_t top = 0.10, Double_t right = 0.15, Double_t bottom = 0.
   gPad -> SetBottomMargin(bottom);
   gPad -> SetLeftMargin(left);
 }
-
+/*
 void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
 
   const string & path = "test", bool ONLINE_FLAG = false, bool SCAN_FLAG = false, int SCAN_N = 0) {
@@ -371,7 +371,7 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   stat_file << "        h1 { text-align: center; color: #333; }\n";
   stat_file << "        p { margin: 10px 0; padding: 10px; background-color: #e9ecef; border-radius: 4px; }\n";
   stat_file << "        .label { font-weight: bold; }\n";
-  stat_file << "        th, td { width: 150px; } /* 列の幅を指定 */\n";
+  stat_file << "        th, td { width: 150px; }
   stat_file << "    </style>\n";
   stat_file << "</head>\n";
   stat_file << "<body>\n";
@@ -856,11 +856,11 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
       //===== Start Reading each Rawdata ======
       while (!rawdata[nIP].eof()  && !Stop_KAL[nIP] ) {
         //===== SKIP_FLAG =====
-        /*
+
         if(SKIP_FLAG[nIP]){
           SKIP_FLAG[nIP] = false; break;
         }
-        */
+
         char Byte[4];
         rawdata[nIP].read(Byte, 4); // reading 4 byte (32 bit)
         unsigned int data = Read_Raw_32bit(Byte);
@@ -1448,10 +1448,10 @@ void rawdata2root(int runN = 10, int N_IP = 0, bool fNIM = 0, bool ftree = 0,
   cNIM_L -> Write();
 
   // 新しいヒストグラムの作成
-TH1D* Assym_FB = new TH1D("Assym_FB", "Assym_FB", hNIM_L[0]->GetNbinsX(), 0, 10e3);
-TH1D* Assym_UD = new TH1D("Assym_UD", "Assym_UD", hNIM_L[0]->GetNbinsX(), 0, 10e3);
-TH1D* Assym_FB_subBG = new TH1D("Assym_FB_subBG", "Assym_FB_subBG", hNIM_L[0]->GetNbinsX(), 0, 10e3);
-TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->GetNbinsX(), 0, 10e3);
+  TH1D* Assym_FB = new TH1D("Assym_FB", "Assym_FB", hNIM_L[0]->GetNbinsX(), 0, 10e3);
+  TH1D* Assym_UD = new TH1D("Assym_UD", "Assym_UD", hNIM_L[0]->GetNbinsX(), 0, 10e3);
+  TH1D* Assym_FB_subBG = new TH1D("Assym_FB_subBG", "Assym_FB_subBG", hNIM_L[0]->GetNbinsX(), 0, 10e3);
+  TH1D* Assym_UD_subBG = new TH1D("Assym_UD_subBG", "Assym_UD_subBG", hNIM_L[0]->GetNbinsX(), 0, 10e3);
 
 // Assymetryのゼロ点を合わせるために0~2usの範囲でFitする関数を定義
  TF1 *fAssym_FB = new TF1("fAssym_FB", "[0] + [1] * sin(x * [2] + [3])", 0, 2e3);
@@ -1513,7 +1513,7 @@ for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
     sqrt(value[1][0]), sqrt(value[1][1])
   };
 
-  /*
+
     for(int i=0; i<2; i++){
       for(int j=0; j<2; j++){
 	if(value[0][0] > 10){
@@ -1523,7 +1523,7 @@ for (int bin = 1; bin <= hNIM_L[0]->GetNbinsX(); bin++) {
 	}
       }
     }
-  */
+
     // Assym_FB の計算とフィリング
     if (value[0][0] + value[0][1] != 0) {
         double assym_fb = (value[0][0] - value[0][1]) / (value[0][0] + value[0][1]);
@@ -1779,7 +1779,7 @@ cAssym_subBG -> Write();
     cNIM_TOT -> cd(jj + 1) -> Update();
   }
   cNIM_TOT -> Write();
-  */
+
 
   // Kalliope
   TCanvas * cKAL_TOT2 = new TCanvas(Form("cKAL_TOT2"), Form("cKAL_TOT2"), 1200, 600);
@@ -1811,7 +1811,7 @@ cAssym_subBG -> Write();
     }
     cKAL_TOT[ii] -> Write();
   }
-  */
+
 
   //==== Multiplicity ======================================================== 
   TCanvas * cMulti    = new TCanvas("----- Multi ------------------------------", "----- Multi ------------------------------", 1, 1);
@@ -2208,7 +2208,7 @@ cAssym_subBG -> Write();
 
   stat_file.close();
 }
-
+  */
 void ThDACScan(int runN, int N_IP = 0, bool fNIM = 0, bool ftree = 0, const string & path = "test", bool ONLINE_FLAG = true) {
   for (int ii = 0; ii < 16; ii++) {
     rawdata2root(runN, N_IP, fNIM, ftree, path, ONLINE_FLAG, true, ii);
@@ -2274,7 +2274,7 @@ void Check_Real_CH() {
   ifstream rawdata[12];
   string ifname[12];
   int xy = 0, ud = 0, oi = 0, ch_offset = 0, Layer_No = 0;
-  int ch = -999, N_IP = 2;
+  int ch = -999, N_IP = 12;
   TH2I * hCH_Assign_out[4];
   hCH_Assign_out[0] = new TH2I("hCH_Assign_out_0", "Fiber_x_up  ; Kalliope CH; Fiber CH", 64, 0, 64, 64, 0, 64);
   hCH_Assign_out[1] = new TH2I("hCH_Assign_out_1", "Fiber_y_up  ; Kalliope CH; Fiber CH", 64, 0, 64, 64, 0, 64);
@@ -2290,8 +2290,24 @@ void Check_Real_CH() {
     int nIP = i + 1;
     //if(runN<10) ifname[i]=Form("../RAW/%s/MSE00000%d_192.168.10.%d.rawdata",path.c_str(),runN,nIP);
     //else ifname[i]=Form("../RAW/%s/MSE0000%d_192.168.10.%d.rawdata",path.c_str(),runN,nIP);
-    ifname[i] = Form("../RAW/test_noise/MSE000000_192.168.10.%d.rawdata", nIP);
+    ifname[i] = Form("../RAW/NOISE/MSE0000052_192.168.10.%d.rawdata", nIP);
     rawdata[i].open(ifname[i].c_str(), ios::binary);
+     switch(IP){
+    // (xy: x=0, y=1); (ud: u=0, d=1); (oi: o=0; i=1); (ch: 0-31=0, 32-63=1);
+    //to be in src file...
+     case 0:  xy=0; ud=0; oi=0; ch_offset=0; Layer_No=0 ; break; // IP = 01, AB 00 - 15, CD 16 - 31
+     case 1:  xy=0; ud=0; oi=0; ch_offset=1; Layer_No=0 ; break; // IP = 02, EF 32 - 47, GH 48 - 63
+     case 2:  xy=1; ud=0; oi=0; ch_offset=0; Layer_No=1 ; break; // IP = 03, AB 00 - 15, CD 16 - 31
+     case 3:  xy=1; ud=0; oi=0; ch_offset=1; Layer_No=1 ; break; // IP = 03, EF 32 - 47, GH 48 - 63
+     case 4:  xy=0; ud=0; oi=1; ch_offset=0; Layer_No=0 ; break; // IP = 05, AB 00 - 15, CD 16 - 31
+     case 5:  xy=0; ud=1; oi=1; ch_offset=1; Layer_No=0 ; break; // IP = 06, EF 00 - 15, GH 16 - 31
+     case 6:  xy=1; ud=0; oi=1; ch_offset=0; Layer_No=1 ; break; // IP = 07, AB 00 - 15, CD 16 - 31
+     case 7:  xy=1; ud=1; oi=1; ch_offset=1; Layer_No=1 ; break; // IP = 08, EF 00 - 15, GH 16 - 31
+     case 8:  xy=1; ud=1; oi=0; ch_offset=0; Layer_No=2 ; break; // IP = 09, AB 00 - 15, CD 16 - 31
+     case 9:  xy=1; ud=1; oi=0; ch_offset=1; Layer_No=2 ; break; // IP = 10, EF 32 - 47, GH 48 - 63
+     case 10: xy=0; ud=1; oi=0; ch_offset=0; Layer_No=3 ; break; // IP = 11, AB 00 - 15, CD 16 - 31
+     case 11: xy=0; ud=1; oi=0; ch_offset=1; Layer_No=3 ; break; // IP = 12, EF 32 - 47, GH 48 - 63
+     }
 
     if (!rawdata[i]) {
       cout << "Unable to open file: " << ifname[i] << endl;

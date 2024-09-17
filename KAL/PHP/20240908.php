@@ -207,13 +207,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </div>';
 
     // if selected directory name includes "DC", then show the DC parameters
-    // DC_mode : 0 (raw mode) or 1 (supress mode)
+    // DC_mode : 0 (raw mode) or 1 (suppress mode)
     if (strpos($directory_name, 'DC') !== false) {
         echo '<div class="form-group">
             <label for="DC_mode">DC_mode:</label>
             <select id="DC_mode" name="DC_mode" class="form-control" required onchange="this.form.submit()">
                 <option value="0" ' . ($DC_mode === '0' ? 'selected' : '') . '>0: raw mode</option>
-                <option value="1" ' . ($DC_mode === '1' ? 'selected' : '') . '>1: supress mode</option>
+                <option value="1" ' . ($DC_mode === '1' ? 'selected' : '') . '>1: suppress mode</option>
             </select>
         </div>';
     }
